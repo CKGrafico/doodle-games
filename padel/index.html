@@ -50,7 +50,7 @@
   </section>
   <section id="touch-controls" class="touch-controls" hidden aria-label="Touch controls">
     <div id="joystick" class="joystick" role="group" aria-label="Drag to move"><div id="joystick-thumb"></div><span>MOVE</span></div>
-    <div class="touch-shots"><button data-shot="lob" class="shot minor">LOB</button><button data-shot="smash" class="shot minor">SMASH</button><button data-shot="drive" class="shot hit">HIT</button></div>
+    <div class="touch-shots"><button id="switch-player" class="shot minor">SWITCH</button><button data-shot="lob" class="shot minor">LOB</button><button data-shot="smash" class="shot minor">SMASH</button><button data-shot="drive" class="shot hit">HIT</button></div>
   </section>
   <dialog id="help-dialog" class="paper-dialog">
     <button class="close-dialog" data-close="help-dialog" aria-label="Close instructions">×</button>
@@ -58,7 +58,7 @@
     <p>Padel is doubles, with a net and playable walls. You control the blue player marked <strong>YOU</strong>. Your partner covers the other side.</p>
     <ol class="rules-list"><li><strong>Serve diagonally.</strong> Press Hit. Your player bounces the ball and serves underarm. The return must bounce first.</li><li><strong>Ground, then glass.</strong> Let the ball rebound off your walls, then hit before its second ground bounce. Hitting the opponents’ wall before their ground loses the point.</li><li><strong>Find the space.</strong> Aim with the mouse or tap the far court. Hold Space to return, E for a high lob, or Q for a smash when the ball is high.</li></ol>
     <div class="key-grid"><span><kbd>WASD / arrows</kbd> Move</span><span><kbd>Space / click</kbd> Hit</span><span><kbd>E</kbd> Lob</span><span><kbd>Q</kbd> Smash a high ball</span><span><kbd>Tab</kbd> Switch partner</span><span><kbd>Esc / P</kbd> Pause</span></div>
-    <p class="help-small">Movement help automatically positions you; directional input always takes over. On a touch screen, use the movement pad and shot buttons.</p>
+    <p class="help-small">Movement help automatically positions you; directional input always takes over. On a touch screen, use the movement pad and shot buttons; SWITCH changes your partner. Push the stick fully to sprint (Shift on keyboard).</p>
     <p class="help-small">Quick match: first to 3 games, deciding point at 40–40. One set: advantage scoring, 7-point tie-break at 6–6. Warm-up has no match winner. This is an arcade adaptation: assisted strokes and no out-of-court retrieval.</p>
     <button class="primary" data-close="help-dialog">GOT IT</button>
   </dialog>

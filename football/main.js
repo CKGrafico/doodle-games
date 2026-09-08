@@ -1,4 +1,4 @@
-import { TEAM_KEYS, movement, isEditing } from '../shared/controls.js';
+import { TEAM_KEYS, movement, wantsSprint, isEditing } from '../shared/controls.js';
 import {FootballGame,STEP} from './simulation.js';
 const $=id=>document.getElementById(id),keys=new Set(),coarse=matchMedia('(pointer: coarse)').matches;
 let game=new FootballGame(),view,playing=false,previous=0,accumulator=0,action=null,moveTouch={x:0,z:0},sound=false,audio,frame;
@@ -10,7 +10,7 @@ function start(){dialogs.forEach(d=>d.close());clear();game=new FootballGame({du
 function quit(){dialogs.forEach(d=>d.close());clear();playing=false;game=new FootballGame();ui();$('start').focus();}
 function pause(){if(!playing||game.stage==='fulltime')return;clear();if($('pause-dialog').open)$('pause-dialog').close();else if(!paused())$('pause-dialog').showModal();}
 function assist(){$('assist-toggle').textContent=`Movement help: ${game.assisted?'on':'off'}`;$('assist-toggle').setAttribute('aria-pressed',game.assisted);}
-function input(){let x=(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0)+moveTouch.x,z=(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-(keys.has('KeyW')||keys.has('ArrowUp')?1:0)+moveTouch.z;const a=action;action=null;return{...movement(x,z,view.camera),sprint:keys.has('ShiftLeft')||keys.has('ShiftRight'),action:a,aim:game.aim};}
+function input(){let x=(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0)+moveTouch.x,z=(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-(keys.has('KeyW')||keys.has('ArrowUp')?1:0)+moveTouch.z;const a=action;action=null;return{...movement(x,z,view.camera),sprint:wantsSprint(keys,moveTouch),action:a,aim:game.aim};}
 function hud(){
   $('your-goals').textContent=game.goals[0];$('their-goals').textContent=game.goals[1];const secs=Math.floor(game.elapsed/game.duration*90*60);$('match-clock').textContent=`${String(Math.floor(secs/60)).padStart(2,'0')}:${String(secs%60).padStart(2,'0')}`;
   $('match-half').textContent=game.stage==='fulltime'?'FULL-TIME':game.half===1?'FIRST HALF':'SECOND HALF';$('attack-label').textContent=game.half===1?'ATTACK →':'← ATTACK';

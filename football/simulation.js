@@ -206,7 +206,7 @@ export class FootballGame {
     }
     if(['kickoff','restart'].includes(this.stage)){
       this.timer+=dt;const p=this.players[this.ball.owner];
-      if((p.team===0&&!input.autoplay)?!!input.action:this.timer>1.2){
+      if((p.team===0&&!input.autoplay)?['pass','through','loft','shoot'].includes(input.action):this.timer>1.2){
         const type=this.restart?.type;this.kick(p,type==='corner'?'loft':'pass',null);
       }
       return;

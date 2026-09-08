@@ -13,3 +13,5 @@
 @media(max-width:650px){.golf-hud{top:68px;left:10px;gap:8px;padding:8px}.golf-hud>div{min-width:53px}.golf-hud strong{font-size:29px}.golf-score{padding-inline:8px}.shot-panel{right:10px;bottom:145px;transform:none;width:155px;padding:11px;gap:9px}.distance strong{font-size:39px}.shot-panel .primary{font-size:19px;min-height:39px}.controls{bottom:96px}.lobby h1{font-size:42px}}
 
 @media(max-height:560px) and (min-width:651px){.lobby{top:80px;transform:none;display:grid;grid-template-columns:170px 250px;column-gap:25px;width:445px}.lobby .eyebrow{font-size:9px;letter-spacing:1px}.lobby h1{font-size:58px;margin-top:15px}.lobby h1:after{width:160px}.lobby .intro{font-size:18px;max-width:160px}.lobby .setup{grid-column:2;grid-row:1/5;width:250px}.lobby .setup-row{margin:0 0 10px}.court-note{display:none}.lobby .hand-note{display:none}.lobby .primary{min-height:42px;padding:6px 15px}}
+
+#shot-status { margin: 5px 0; line-height: 1.35; font-size: 12px; letter-spacing: 0; }

@@ -1,9 +1,10 @@
-import { movement, isEditing } from '../shared/controls.js';
+import { movement, isEditing, ActionQueue, wantsSprint } from '../shared/controls.js';
 import { PadelGame, FIXED_STEP } from './simulation.js';
 
 const $=id=>document.getElementById(id);
 let view,game=new PadelGame(),playing=false,frame=0,previous=0,accumulator=0,hudPrevious='',noticeUntil=0;
 let soundOn=false,audioContext=null,pointerShot=null,touchShot=null,moveTouch={x:0,z:0};
+const switches=new ActionQueue();
 const keys=new Set(),touch=matchMedia('(pointer: coarse)').matches;
 const dialogs=[$('help-dialog'),$('pause-dialog'),$('result-dialog')];
 const isPaused=()=>dialogs.some(dialog=>dialog.open);
@@ -23,7 +24,7 @@ function beep(kind) {
   }catch{soundOn=false;$('sound').textContent='Sound unavailable';$('sound').setAttribute('aria-pressed','false');}
 }
 
-function clearInput(){keys.clear();pointerShot=null;touchShot=null;moveTouch={x:0,z:0};$('joystick-thumb').style.transform='';}
+function clearInput(){switches.clear();keys.clear();pointerShot=null;touchShot=null;moveTouch={x:0,z:0};$('joystick-thumb').style.transform='';}
 function applyPlayingUI() {
   document.body.classList.toggle('playing',playing);
   for(const id of ['lobby','court-note','lobby-footer'])$(id).hidden=playing;
@@ -79,17 +80,16 @@ function getInput() {
   let z=(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-(keys.has('KeyW')||keys.has('ArrowUp')?1:0)+moveTouch.z;
   // Map screen-relative movement onto the court, including the angled camera.
   const {moveX,moveZ}=movement(x,z,view.camera);
-  return {moveX,moveZ,sprint:keys.has('ShiftLeft')||keys.has('ShiftRight'),
+  return {moveX,moveZ,sprint:wantsSprint(keys,moveTouch),
     shot:touchShot||pointerShot||(keys.has('KeyE')?'lob':keys.has('KeyQ')?'smash':keys.has('Space')?'drive':null),
-    switch:keys.has('Tab'),aim:game.aim};
+    switch:keys.has('Tab')||switches.take()==='switch',aim:game.aim};
 }
 function animate(now) {
   frame=requestAnimationFrame(animate);
   const dt=Math.min((now-previous)/1000||0,.06);previous=now;
   if(playing&&!isPaused()) {
     accumulator=Math.min(accumulator+dt,FIXED_STEP*8);
-    const input=getInput();
-    while(accumulator>=FIXED_STEP){game.step(FIXED_STEP,input);accumulator-=FIXED_STEP;}
+    while(accumulator>=FIXED_STEP){game.step(FIXED_STEP,getInput());accumulator-=FIXED_STEP;}
     processEvents();updateHUD();
   }else accumulator=0;
   const label=view.render(game,dt,now/1000);
@@ -139,6 +139,7 @@ for(const button of document.querySelectorAll('[data-shot]')){
   const release=()=>{if(touchShot===button.dataset.shot)touchShot=null;};
   button.addEventListener('pointerup',release);button.addEventListener('pointercancel',release);button.addEventListener('lostpointercapture',release);
 }
+$('switch-player').addEventListener('pointerdown',event=>{if(playing&&!isPaused()){event.preventDefault();switches.push('switch');}});
 let joystickId=null;
 function joystickMove(event){
   if(event.pointerId!==joystickId)return;

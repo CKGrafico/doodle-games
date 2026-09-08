@@ -6,7 +6,7 @@ The visual reference is [Doodle District](https://doodleshooter.vercel.app/), wi
 
 Padel translates that idea into this collection's own elevated 3D sports scene: cream paper behind blue-ink geometry, muted red opposition, sketch outlines and crosshatching, handwritten titles, restrained interface chrome, a visible ball/aim/active-player system, and a notebook lobby beside the playing area.
 
-Keep these principles without copying the shooter's source, assets, multiplayer, first-person camera, or weapon mechanics. The shared shader is the original padel world-space shader from this repository, extracted into `shared/ink.js`; it is not the shooter's screen-space rendering implementation.
+Keep these principles without copying the shooter's source, assets, multiplayer, first-person camera, or weapon mechanics. Padel and pickleball share their original animated characters through `shared/racket-player.js`; pickleball uses a solid paddle and a perforated ball, with an open court and red kitchen zones. The shared shader is the original padel world-space shader from this repository, extracted into `shared/ink.js`; it is not the shooter's screen-space rendering implementation.
 
 ## Shared palette and type
 

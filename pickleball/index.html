@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f7f4e9">
+  <meta name="description" content="Doubles pickleball in a hand-drawn Three.js notebook: dinks, volleys, kitchen rules and side-out scoring.">
+  <title>Pickleball District · Doodle Games</title>
+  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="../shared/theme.css">
+  <script type="module" src="./main.js"></script>
+</head>
+<body>
+  <main id="arena"><canvas id="court" tabindex="0" aria-label="Pickleball court. WASD moves, Space hits, E lobs, Q smashes, F dinks and Tab switches partners."></canvas></main>
+  <div class="paper-grain" aria-hidden="true"></div>
+  <header class="masthead">
+    <a class="wordmark" href="../" aria-label="Doodle Games home">pb<span class="wordmark-ball">.</span></a>
+    <span class="edition">THE NOTEBOOK SERIES <span>/</span> No. 06</span>
+    <nav class="utilities" aria-label="Game utilities">
+      <button id="sound" class="text-button" aria-pressed="false">Sound off</button>
+      <button id="help" class="text-button">How to play <span class="key">?</span></button>
+      <button id="pause" class="text-button" hidden>Pause <span class="key">Esc</span></button>
+    </nav>
+  </header>
+  <section id="lobby" class="lobby">
+    <p class="eyebrow"><span class="tiny-rule"></span> SOFT HANDS. SHARP ANGLES.</p>
+    <h1>PICKLEBALL<br><span>DISTRICT</span><i class="title-dot">.</i></h1>
+    <p class="intro">Stay curious. Mind the kitchen.</p>
+    <div class="setup">
+      <div class="setup-row"><label for="target">The match</label><select id="target"><option value="11">Classic doubles · first to 11</option><option value="5">Quick page · first to 5</option></select></div>
+      <div class="setup-row"><label for="difficulty">Your opponents</label><select id="difficulty"><option value="casual">Casual · easy afternoon</option><option value="club" selected>Club · a little competition</option><option value="pro">Pro · quick hands</option></select></div>
+      <label class="assist-label"><input id="assist" type="checkbox" checked> Movement help <span class="hand-note">you choose the shots, we help with the footwork.</span></label>
+      <button id="start" class="primary" disabled>PREPARING THE COURT…</button>
+      <p class="start-note">Two a side. Score on serve. Win by two.</p>
+    </div>
+  </section>
+  <aside id="court-note" class="court-note" aria-hidden="true"><span>the kitchen is for dinks.<br>not dinner.</span><span class="note-arrow">↙</span></aside>
+  <footer id="lobby-footer" class="lobby-footer"><span>DRAWN TO PLAY.</span><span>Part of <a href="../">Doodle Games</a> · Inspired by <a href="https://x.com/EvanMilenko/status/2096356126145015885" target="_blank" rel="noreferrer">Evan Milenko</a></span></footer>
+  <section id="hud" class="hud" hidden aria-label="Match scoreboard">
+    <div class="scoreboard">
+      <div class="score-team blue"><span class="team-label">YOU & CO.</span><b id="your-points">0</b><span class="games">BLUE INK</span></div>
+      <div class="score-centre"><span id="match-mode">FIRST TO 11 · WIN BY 2</span><span id="score-call" class="score-call">0–0–2</span><span id="serve-label">YOUR SERVE</span></div>
+      <div class="score-team red"><span class="team-label">THE DISTRICT</span><b id="their-points">0</b><span class="games">RED INK</span></div>
+    </div>
+    <div class="rally-count"><span id="rally-count">0</span><small>RALLY</small></div>
+  <div id="rule-status" class="rule-status" hidden role="status" aria-live="polite">Serve must bounce</div>
+  </section>
+  <div id="callout" class="callout" hidden role="status" aria-live="polite"><strong id="callout-title">Your serve</strong><span id="callout-detail">Press Space or tap Hit</span></div>
+  <div id="player-label" class="player-label" hidden aria-hidden="true">YOU</div>
+  <section id="controls" class="controls" hidden aria-label="Match controls">
+    <div class="desktop-controls"><span><kbd>WASD</kbd> move</span><span><kbd>SPACE</kbd> hit</span><span><kbd>E</kbd> lob</span><span><kbd>Q</kbd> smash</span><span><kbd>F</kbd> dink</span><span><kbd>TAB</kbd> switch</span></div>
+    <div class="control-actions"><button id="camera" class="small-button">Camera: raised</button><button id="assist-toggle" class="small-button" aria-pressed="true">Movement help: on</button></div>
+  </section>
+  <section id="touch-controls" class="touch-controls" hidden aria-label="Touch controls">
+    <div id="joystick" class="joystick" role="group" aria-label="Drag to move, push fully to sprint"><div id="joystick-thumb"></div><span>MOVE</span></div>
+    <div class="touch-shots pickle-shots">
+      <button data-shot="lob" class="shot minor">LOB</button><button data-shot="smash" class="shot minor">SMASH</button>
+      <button data-shot="dink" class="shot minor">DINK</button><button id="switch-player" class="shot minor">SWITCH</button>
+      <button data-shot="drive" class="shot hit">HIT</button>
+    </div>
+  </section>
+  <dialog id="help-dialog" class="paper-dialog">
+    <button class="close-dialog" data-close="help-dialog" aria-label="Close instructions">×</button>
+    <p class="eyebrow">A QUICK KITCHEN BRIEFING</p><h2>Give it a bounce.</h2>
+    <p>You control the blue player marked YOU. Your partner covers the other half. Aim with the mouse, or tap the far court on touch screens.</p>
+    <ol class="rules-list">
+      <li><strong>Serve diagonally.</strong> Hit starts an assisted underarm serve into the highlighted box, beyond the kitchen. There is one serve attempt.</li>
+      <li><strong>Bounce on both sides.</strong> Let the serve bounce, then let the return bounce. Held shots wait for these required bounces. Afterward, volleys are allowed.</li>
+      <li><strong>Respect the kitchen.</strong> No volley with your feet on or inside the red zone. Moving into it after a volley can also be a fault. You may enter to play a bounced ball.</li>
+      <li><strong>Earn your serve.</strong> Only the serving team scores. Each team gets two servers, except the opening turn. The call reads serving score, receiving score, server number.</li>
+    </ol>
+    <div class="key-grid"><span><kbd>WASD / arrows</kbd> Move</span><span><kbd>Space / click</kbd> Drive / serve</span><span><kbd>E / right-click</kbd> Lob</span><span><kbd>Q</kbd> Smash a high ball</span><span><kbd>F</kbd> Soft dink</span><span><kbd>Tab</kbd> Switch partner</span><span><kbd>Shift</kbd> Sprint</span><span><kbd>Esc / P</kbd> Pause</span></div>
+    <p class="help-small">On touch screens, drag the stick and hold a named shot button. Push the stick fully to sprint. Tap SWITCH to change partner. Movement help positions you; manual input takes over.</p>
+    <p class="help-small">Arcade doubles: classic to 11 or quick to 5, always win by two. Enlarged ball and reach, assisted serve/shot arcs, point-centre line calls, and simplified foot/momentum detection. Net clips end the rally; spin, body/net contact and around-post play are not fully modeled.</p>
+    <p class="help-small"><a href="https://usapickleball.org/rules/summary/" target="_blank" rel="noreferrer">Read the sport's rules ↗</a></p>
+    <button class="primary" data-close="help-dialog">GOT IT</button>
+  </dialog>
+  <dialog id="pause-dialog" class="paper-dialog compact"><p class="eyebrow">TAKE A BREATHER</p><h2>Fresh page?</h2><button id="resume" class="primary">BACK TO COURT</button><button id="restart" class="secondary">Restart match</button><button id="quit" class="text-button">Return to notebook</button></dialog>
+  <dialog id="result-dialog" class="paper-dialog compact"><p class="eyebrow">THAT'S A WRAP</p><h2 id="result-title">The district is yours.</h2><div id="result-score" class="result-score">11 : 0</div><p id="result-stats"></p><button id="rematch" class="primary">ONE MORE?</button><button id="result-quit" class="secondary">Back to notebook</button></dialog>
+  <section id="error" class="error-panel" hidden role="alert"><h2>The court could not load.</h2><p id="error-text">Enable graphics acceleration, then reload.</p><button id="reload" class="primary">RELOAD THE COURT</button></section>
+  <noscript><div class="error-panel">Enable JavaScript to play Pickleball District.</div></noscript>
+</body>
+</html>

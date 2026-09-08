@@ -19,6 +19,11 @@ export function isEditing(target) {
   return target?.isContentEditable || ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'A'].includes(target?.tagName);
 }
 
+// Touch players get the same speed option without another small button.
+export function wantsSprint(keys, stick = { x: 0, z: 0 }) {
+  return keys.has('ShiftLeft') || keys.has('ShiftRight') || Math.hypot(stick.x, stick.z) >= .85;
+}
+
 // Drain only inside a simulation step, never once per rendered frame.
 export class ActionQueue {
   constructor() { this.actions = []; }

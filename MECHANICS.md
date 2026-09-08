@@ -12,25 +12,27 @@ Every game must offer a complete loop: understand the objective, make a delibera
 
 The canvas must have focus for gameplay shortcuts. Inputs, links, buttons, and selects retain their native keyboard behavior. In-game help and visible controls must match this table.
 
-| Intent | Padel | Football | Water polo | Golf | Petanca |
-| --- | --- | --- | --- | --- | --- |
-| WASD / arrows | Move | Move | Swim | A/D aim, W/S power | A/D direction, W/S distance |
-| Mouse movement | Aim on court | Aim pass/shot | Aim pass/shot | Aim shot | Aim throw |
-| Space / left click | Drive / serve | Pass / restart | Pass | Swing | Place jack / throw |
-| E / right click | Lob | Loft / cross | Lead pass | Cycle club | Cycle throwing style |
-| Q | Smash | Shoot | Shoot | Unassigned | Select shooting style |
-| Tab | Switch partner | Switch player | Switch player | Native focus | Native focus |
-| F | Unassigned | Tackle | Steal | Unassigned | Unassigned |
-| Shift | Sprint | Sprint | Faster swim | Unassigned | Unassigned |
-| Esc / P | Pause | Pause | Pause | Pause | Pause |
-| ? | Help | Help | Help | Help | Help |
+| Intent | Padel | Football | Water polo | Golf | Petanca | Pickleball |
+| --- | --- | --- | --- | --- | --- | --- |
+| WASD / arrows | Move | Move | Swim | A/D aim, W/S power | A/D direction, W/S distance | Move |
+| Mouse movement | Aim on court | Aim pass/shot | Aim pass/shot | Aim shot | Aim throw | Aim on court |
+| Space / left click | Drive / serve | Pass / restart | Pass | Swing | Place jack / throw | Drive / serve |
+| E / right click | Lob | Loft / cross | Lead pass | Cycle club | Cycle throwing style | Lob |
+| Q | Smash | Shoot | Shoot | Unassigned | Select shooting style | Smash |
+| Tab | Switch partner | Switch player | Switch player | Native focus | Native focus | Switch partner |
+| F | Unassigned | Tackle | Steal | Unassigned | Unassigned | Dink |
+| Shift | Sprint | Sprint | Faster swim | Unassigned | Unassigned | Sprint |
+| Esc / P | Pause | Pause | Pause | Pause | Pause | Pause |
+| ? | Help | Help | Help | Help | Help | Help |
+
+Pickleball adds F = dink, a soft shot toward the kitchen. All movement games support sprinting by pushing the touch stick fully; the shared threshold is 85%. Padel and pickleball both expose a touch partner-switch button.
 
 Football retains J = shoot, K = through pass, L = loft. Water polo retains J = shoot and K/L = lead pass. Golf retains 1–4 = driver, iron, wedge, putter. These are aliases, not different primary controls.
 
 Two intentional exceptions preserve the sport:
 
 - Golf and petanca are stationary precision games. WASD changes the shot, not an avatar's location. Their UI shows power/distance and the selected club/style. A separate click on Swing/Lanzar works after aiming with sliders.
-- Padel supports held shots for contact timing and continuous rallies. Football and water polo actions are discrete attempts. Consume a queued action once in a fixed simulation step, never once per rendered frame; do not repeat it through multiple catch-up steps.
+- Padel and pickleball support held shots for contact timing and continuous rallies. Football and water polo actions are discrete attempts. Consume a queued action once in a fixed simulation step, never once per rendered frame; do not repeat it through multiple catch-up steps.
 
 On touch screens, tap the playing surface to aim without firing. Movement games provide a captured joystick and named action buttons. Precision games provide sliders/selects and a separate primary button. Every desktop core action needs a touch equivalent, including player switching and defense. Touch cancellation and loss of pointer capture must release movement/actions.
 
@@ -45,7 +47,7 @@ On touch screens, tap the playing surface to aim without firing. Movement games 
 
 ## Simulation and lifecycle
 
-Use a bounded fixed timestep (currently 1/60 second), with rendering separate from physics. Pause/help/results stop gameplay time and input. Blur and hidden tabs clear input and pause an active game. Closing a dialog clears stale actions before returning to play. Restart/rematch clears the previous game's state, timers, input, and score.
+Use a bounded fixed timestep (currently 1/120 second for padel, pickleball and petanca; 1/60 for football, golf and water polo), with rendering separate from physics. Pause/help/results stop gameplay time and input. Blur and hidden tabs clear input and pause an active game. Closing a dialog clears stale actions before returning to play. Restart/rematch clears the previous game's state, timers, input, and score.
 
 Use swept crossings for fast goals and cup contact. Score from the ball's position and height at crossing, not from its later resting position. Define whether the whole ball must cross and account for its radius at posts/crossbars.
 
@@ -59,7 +61,10 @@ Loading must not allow a broken start. WebGL failure or context loss must stop t
 | Football | 22 players, passing/through/loft/shoot, possession, goalkeepers, halves/change of ends, restarts and offside | Both teams complete passes and attempt goals; valid/invalid goals; possession recovery; restarts and full time |
 | Water polo | 14 players, swimming, pass/lead/shoot/steal/switch, opposing goalkeepers, four quarters and possession clock | Keepers at opposite ends; clock survives same-team passes; turnovers can restart; high shots miss; both teams attack |
 | Golf | Club differences, power and aim, wind, terrain, bounce/roll, cup, penalties, hole progression and score | Preview matches physics; hazards penalize; cup contact scores once; all selected holes can advance |
+| Pickleball | Four players, diagonal serve, two-bounce rule, kitchen volleys/momentum, drive/lob/smash/dink, two-server side-out scoring | Service order and receiver positions, kitchen and net faults, first versus second bounce out, win-by-two and complete matches |
 | Petanca | Three boules each, jack placement, point/lob/shoot, boule/jack collisions, closest-side turn logic, end scoring to 13 | Collisions transfer momentum; ties/dead jack; legal turns; complete seeded match |
+
+Pickleball uses classic doubles to 11 or quick games to 5, win by two. Held shots wait for compulsory bounces. It uses an enlarged ball/reach, point-centre line calls, assisted underarm serves/arcs and a foot/stopping-distance approximation of volley momentum. Net clips end the rally; spin, body/net contact and around-post play are not fully modeled. See [pickleball research](docs/pickleball.md).
 
 These are arcade adaptations, not full tournament simulators. Document omitted rules in each game's help. The water polo implementation deliberately uses a simple 30-second team-possession timer, reset on an opponent gaining possession or a restart, with no shot-rebound reset, exclusions, fouls, or penalty throws. It does not claim to implement current tournament regulations. Padel uses the scoring options described in its help; petanca is singles; golf uses simplified stroke-and-distance penalties.
 

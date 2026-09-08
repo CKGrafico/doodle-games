@@ -1,12 +1,14 @@
 # Doodle Games
 
-Five original hand-drawn sports games built with Three.js and no build step:
+Six original hand-drawn sports games built with Three.js and no build step:
 
 - `padel/`: doubles padel with glass-wall rebounds, partners, opponents, serves, rallies, and scoring.
 - `football/`: 11 versus 11 football with AI teams, passing, shooting, keepers, restarts, offside, and match time.
 - `golf/`: nine-hole stroke play with clubs, wind, slopes, bunkers, water, penalties, and a scorecard.
 - `waterpolo/`: 7 versus 7 water polo with swimming, passing, shooting, steals, goalkeepers, four quarters, and a possession clock.
 - `petanca/`: singles pétanque to 13 points, three boules each, movable jack, collisions, three throwing styles, AI opponent, touch controls, and a Spanish interface.
+
+- `pickleball/`: doubles with diagonal serves, the two-bounce rule, kitchen faults, dinks/lobs/drives/smashes, and traditional side-out scoring.
 
 ## Play
 

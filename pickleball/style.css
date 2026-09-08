@@ -1,0 +1,22 @@
+@import url('../padel/style.css');
+.lobby { width: 405px; }
+.lobby h1 { font-size: clamp(61px, 6.3vw, 94px); }
+.score-call { font: 29px/1.2 var(--hand); color: var(--ink); margin: 5px 0; }
+.rule-status { position: relative; margin: 9px auto 0; width: max-content; padding: 7px 15px; background: #f7f4e9ed; border: 1px solid #c94b5988; color: var(--red); font: 18px var(--hand); text-align: center; max-width: 90vw; }
+.pickle-shots { grid-template-columns: repeat(2, 64px) 78px; grid-template-rows: repeat(2, 54px); }
+.pickle-shots .hit { grid-column: 3; grid-row: 1 / 3; }
+@media(max-width:650px) {
+  .lobby { width: 88%; }
+  .lobby h1 { font-size: 39px; }
+  .rule-status { font-size: 16px; padding: 5px 10px; width: max-content; }
+  .score-call { font-size: 24px; }
+  .pickle-shots { grid-template-columns: repeat(2, 47px) 59px; grid-template-rows: repeat(2, 49px); gap: 6px; }
+  .pickle-shots .shot { font-size: 15px; padding: 4px; }
+  .touch-controls { left: 12px; right: 12px; }
+}
+
+.pickle-shots .shot { width: 100%; height: 100%; }
+@media(max-height:575px) and (min-width:651px) {
+  .lobby { grid-template-columns:230px 250px; width:505px; }
+  .lobby h1 { font-size:48px; }
+}
