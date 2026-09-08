@@ -1,6 +1,6 @@
 # Doodle Games
 
-Six original hand-drawn sports games built with Three.js and no build step:
+Eight original hand-drawn sports games built with Three.js and no build step:
 
 - `padel/`: doubles padel with glass-wall rebounds, partners, opponents, serves, rallies, and scoring.
 - `football/`: 11 versus 11 football with AI teams, passing, shooting, keepers, restarts, offside, and match time.
@@ -10,9 +10,14 @@ Six original hand-drawn sports games built with Three.js and no build step:
 
 - `pickleball/`: doubles with diagonal serves, the two-bounce rule, kitchen faults, dinks/lobs/drives/smashes, and traditional side-out scoring.
 
+- `curling/`: eight stones each, curl, sweeping, collisions, guard protection, hammer and end scoring, AI or local two-player play.
+- `pool/`: 8-ball with solids/stripes, pocket and cushion physics, fouls, ball in hand, called-eight wins, AI or local two-player play.
+
 ## Play
 
-Visit [ckgrafico.github.io/doodle-games](https://ckgrafico.github.io/doodle-games/) or run `npm start` locally.
+Visit [doodle.ckgrafico.com](https://doodle.ckgrafico.com/) or run `npm start` locally.
+
+Hold left click to charge, release to play, right click to cancel. Keyboard and touch alternatives remain available in all games. The menu previews use the actual illustrated game scenes.
 
 ## Inspiration
 

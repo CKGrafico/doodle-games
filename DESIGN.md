@@ -57,3 +57,11 @@ Adapt the scene and controls to small screens; preserve access to the ball, obje
 Inspect all existing games before adding another, as required by AGENTS.md. Compare the lobby, play HUD, help, touch controls, visual materials, camera framing, ball tracking and feedback. Reuse the best established parts and improve shared inconsistencies together. Record concrete findings, fixes, validation and deferred visual checks in `docs/quality-review.md`.
 
 Preserve the homepage's prominent **SUPER, SUPER, SUPER INSPIRED.** credit and original post link. Keep a discoverable way back to the collection from every game.
+
+## Real scene previews and precision sports
+
+Homepage game cards now render a bounded preview from their actual Three.js scene, including relevant equipment, characters and scenery. Match the user’s supplied pickleball game scene, with an elevated camera and the collection’s blue/red ink on paper. Do not replace these previews with flat diagram-like court sketches. `menu.js` loads near-visible cards sequentially, renders one frame, retains the resulting image, and releases GPU resources. Keep an accessible text fallback and working game link if graphics fail.
+
+Curling and pool reuse a shared precision layout: notebook sidebar, turn/score summary, power meter, clear primary action, and a large playable surface. On small screens the surface comes first and controls remain full-size underneath. Curling shows handled stones, house rings, hog lines, a delivery path and a moving broom while sweeping. Pool shows numbered solids/stripes, cushions, six numbered pockets, a cue and first-contact guide. The darker cloth and stone accents are subordinate to the shared paper/ink treatment.
+
+Every charged shot has visible progress and cancellation instructions. The originals use a compact mouse strip; new precision games incorporate the meter into the shot panel. Respect the same interaction semantics, even where the layout differs. Menus, background tabs and restarts cancel gestures and input. New shared UI and new game assets must be reviewed alongside the existing collection for every future addition.

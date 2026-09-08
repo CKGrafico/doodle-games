@@ -36,9 +36,10 @@ export class PickleballGame {
     p.swing = .4; this.stage = 'rally'; this.rallyHits = 1; this.message = 'Serve must bounce';
     this.emit('hit', { kind: 'serve', player: p.id }); return true;
   }
-  launch(target, kind) {
+  launch(target, kind, power = .65) {
     const b = this.ball, dx = target.x - b.x, dz = target.z - b.z, length = Math.hypot(dx, dz);
     let flight = kind === 'lob' ? 2.1 : kind === 'dink' ? 1.08 : kind === 'smash' ? clamp(length / 16, .45, 1) : kind === 'serve' ? 1.45 : clamp(length / 10.5, .72, 1.4);
+    if (kind !== 'serve') flight /= .7 + clamp(power, 0, 1) * (.3 / .65);
     let vy = (R - b.y + .5 * G * flight * flight) / flight;
     const fraction = -b.z / dz;
     if (fraction > 0 && fraction < 1) for (let i = 0; i < 45; i++) {
@@ -89,7 +90,7 @@ export class PickleballGame {
       if (p.vz * signOf(p.team) >= -.08) p.volley = false;
     }
   }
-  hit(p, kind = 'drive', aim = null) {
+  hit(p, kind = 'drive', aim = null, power = .65) {
     if (this.stage !== 'rally' || p.cooldown > 0 || this.time - this.lastHit < .16) return false;
     const b = this.ball;
     if (p.team === this.rally.lastTeam || sideOf(b.z) !== p.team) return false;
@@ -107,7 +108,7 @@ export class PickleballGame {
     if (kind === 'smash' && b.y < 1.55) kind = 'drive';
     if (kind === 'lob') target.z = s * 5.8;
     if (kind === 'dink') target.z = s * (1.35 + this.random() * .3);
-    this.launch(target, kind); p.cooldown = .38; p.swing = .4; p.volley = volley;
+    this.launch(target, kind, power); p.cooldown = .38; p.swing = .4; p.volley = volley;
     this.rallyHits++; this.stats.hits[p.team]++;
     if (volley) this.stats.volleys[p.team]++;
     if (kind === 'dink') this.stats.dinks[p.team]++;
@@ -137,7 +138,7 @@ export class PickleballGame {
       if (p.team !== 1 - this.rally.lastTeam) continue;
       if (human) {
         // Held strokes wait through compulsory bounces; kitchen faults remain real.
-        if (input.shot && !(this.rally.mustBounce[p.team] && this.rally.bounces === 0)) this.hit(p, input.shot, input.aim);
+        if (input.shot && !(this.rally.mustBounce[p.team] && this.rally.bounces === 0)) this.hit(p, input.shot, input.aim, input.power);
       } else if (p.id === this.chaser) {
         const legalVolley = !this.rally.mustBounce[p.team] && !inKitchen(p);
         if ((this.rally.bounces > 0 || legalVolley) && this.time - this.lastHit > .25) this.hit(p);

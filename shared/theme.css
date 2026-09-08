@@ -19,3 +19,9 @@ dialog button, .small-button, .text-button, nav button { min-height: 44px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+
+/* Shared mouse charging strip: touch keeps its explicit action controls. */
+.mouse-power{display:none;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;background:var(--paper);border:1px solid #2a42ad44;padding:7px 12px;border-radius:4px;font:14px var(--sans);color:var(--ink-dark)}
+.mouse-power label{display:flex;align-items:center;gap:8px}.mouse-power select{font:inherit;background:var(--paper);color:var(--ink);border:1px solid var(--ink);padding:4px 8px;min-height:32px}
+.mouse-power meter{width:95px;height:20px;accent-color:var(--ink)}
+@media(pointer:fine){body.playing .mouse-power{display:flex}.view-controls{flex-wrap:wrap}.view-controls .mouse-power{flex-basis:100%}}

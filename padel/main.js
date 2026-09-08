@@ -1,3 +1,5 @@
+import { sportsMouse } from '../shared/sports-mouse.js';
+let mouse;
 import { movement, isEditing, ActionQueue, wantsSprint } from '../shared/controls.js';
 import { PadelGame, FIXED_STEP } from './simulation.js';
 
@@ -24,7 +26,7 @@ function beep(kind) {
   }catch{soundOn=false;$('sound').textContent='Sound unavailable';$('sound').setAttribute('aria-pressed','false');}
 }
 
-function clearInput(){switches.clear();keys.clear();pointerShot=null;touchShot=null;moveTouch={x:0,z:0};$('joystick-thumb').style.transform='';}
+function clearInput(){mouse?.cancel();switches.clear();keys.clear();pointerShot=null;touchShot=null;moveTouch={x:0,z:0};$('joystick-thumb').style.transform='';}
 function applyPlayingUI() {
   document.body.classList.toggle('playing',playing);
   for(const id of ['lobby','court-note','lobby-footer'])$(id).hidden=playing;
@@ -79,13 +81,13 @@ function getInput() {
   let x=(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0)+moveTouch.x;
   let z=(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-(keys.has('KeyW')||keys.has('ArrowUp')?1:0)+moveTouch.z;
   // Map screen-relative movement onto the court, including the angled camera.
-  const {moveX,moveZ}=movement(x,z,view.camera);
+  const {moveX,moveZ}=movement(x,z,view.camera); const release=mouse?.take();
   return {moveX,moveZ,sprint:wantsSprint(keys,moveTouch),
-    shot:touchShot||pointerShot||(keys.has('KeyE')?'lob':keys.has('KeyQ')?'smash':keys.has('Space')?'drive':null),
-    switch:keys.has('Tab')||switches.take()==='switch',aim:game.aim};
+    shot:touchShot||pointerShot||(keys.has('KeyE')?'lob':keys.has('KeyQ')?'smash':keys.has('Space')?'drive':release?.kind??null),power:release?.power,
+    switch:keys.has('Tab')||switches.take()==='switch',aim:release?.aim??game.aim};
 }
 function animate(now) {
-  frame=requestAnimationFrame(animate);
+  frame=requestAnimationFrame(animate);mouse?.update(now);
   const dt=Math.min((now-previous)/1000||0,.06);previous=now;
   if(playing&&!isPaused()) {
     accumulator=Math.min(accumulator+dt,FIXED_STEP*8);
@@ -97,6 +99,7 @@ function animate(now) {
   if(now>noticeUntil)$('shot-notice').hidden=true;
 }
 function fatal(error) {
+  playing=false;clearInput();
   if(frame)cancelAnimationFrame(frame);
   $('error').hidden=false;$('start').disabled=true;
   $('error-text').textContent=/WebGL|context/i.test(error?.message||'')?'Enable graphics acceleration in your browser, then reload to play.':'The court could not load. Reload to try again.';
@@ -129,7 +132,7 @@ $('court').addEventListener('pointermove',event=>{if(!view||!playing||isPaused()
 $('court').addEventListener('pointerdown',event=>{
   if(!view||!playing||isPaused())return;
   event.preventDefault();$('court').focus();const aim=view.aimAt(event.clientX,event.clientY);if(aim)game.aim=aim;
-  if(event.pointerType!=='touch')pointerShot=event.button===2?'lob':'drive';
+
 });
 window.addEventListener('pointerup',()=>{pointerShot=null;});
 window.addEventListener('pointercancel',()=>{pointerShot=null;});
@@ -152,6 +155,8 @@ $('joystick').addEventListener('pointerdown',event=>{event.preventDefault();joys
 $('joystick').addEventListener('pointermove',joystickMove);
 for(const name of ['pointerup','pointercancel','lostpointercapture'])$('joystick').addEventListener(name,event=>{if(event.pointerId===joystickId){joystickId=null;moveTouch={x:0,z:0};$('joystick-thumb').style.transform='';}});
 $('court').addEventListener('webglcontextlost',event=>{event.preventDefault();fatal(new Error('WebGL context lost'));});
+
+mouse=sportsMouse({canvas:$('court'),game:()=>game,active:()=>playing&&!isPaused()&&['ready','rally'].includes(game.stage),context:g=>g.stage+':'+g.lastHitTime,racket:true,choices:[['drive','Drive'],['lob','Lob'],['smash','Smash']],secondary:()=>{pointerShot='lob';setTimeout(()=>pointerShot=null,160)}});
 
 try {
   const {CourtView}=await import('./render.js');

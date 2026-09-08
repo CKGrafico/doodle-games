@@ -43,10 +43,11 @@ export class PadelGame {
     this.launch(target,'serve');p.swing=0.42;this.stage='rally';this.rallyHits=1;
     this.message='Rally on';this.emit('hit',{kind:'serve',player:p.id});
   }
-  launch(target,kind) {
+  launch(target,kind,power=.65) {
     const b=this.ball, dx=target.x-b.x, dz=target.z-b.z;
     const d=Math.hypot(dx,dz);
     let flight=kind==='lob'?2.5:kind==='smash'?clamp(d/17,0.52,1.4):kind==='serve'?1.32:clamp(d/11.5,0.8,1.85);
+    if(kind!=='serve')flight/=.7+clamp(power,0,1)*(.3/.65);
     let vy=(R-b.y+0.5*GRAVITY*flight*flight)/flight;
     const fraction=-b.z/dz;
     // Aim assistance chooses an arc that clears the net, while shot choice
@@ -105,7 +106,7 @@ export class PadelGame {
     p.z=p.team===0?clamp(p.z,0.6,9.55):clamp(p.z,-9.55,-0.6);
     p.vx=(p.x-oldX)/dt;p.vz=(p.z-oldZ)/dt;
   }
-  hit(p,kind='drive',aim) {
+  hit(p,kind='drive',aim,power=.65) {
     if(this.stage!=='rally' || this.time-this.lastHitTime<0.17 || p.cooldown>0)return false;
     const b=this.ball;
     if(!this.rally || p.team===this.rally.lastTeam || sideOf(b.z)!==p.team)return false;
@@ -127,7 +128,7 @@ export class PadelGame {
     if(kind==='smash' && b.y<1.65)kind='drive';
     if(kind==='lob')target.z=s*8.35;
     if(kind==='smash')target.z=s*6.5;
-    this.launch(target,kind);p.swing=0.4;p.cooldown=0.44;this.rallyHits++;
+    this.launch(target,kind,power);p.swing=0.4;p.cooldown=0.44;this.rallyHits++;
     if(this.time-this.lastWallTime<2 && this.lastWallTeam===p.team){this.wallReturns++;this.emit('wall-return');}
     this.message=kind==='lob'?'Lob!':kind==='smash'?'Smash!':'Rally on';this.emit('hit',{kind,player:p.id});
     return true;
@@ -155,7 +156,7 @@ export class PadelGame {
         this.movePlayer(p,target,speed,dt);
       } else {p.vx=0;p.vz=0;}
       if(p.team===receiving) {
-        if(human) {if(input.shot)this.hit(p,input.shot,input.aim);}
+        if(human) {if(input.shot)this.hit(p,input.shot,input.aim,input.power);}
         else if(p===chaser || distance(p,b)<0.8) {
           const delay=p.team===0?0.22:{casual:0.48,club:0.3,pro:0.2}[this.difficulty];
           if(this.time-this.lastHitTime>delay)this.hit(p);

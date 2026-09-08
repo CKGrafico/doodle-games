@@ -16,7 +16,7 @@ The canvas must have focus for gameplay shortcuts. Inputs, links, buttons, and s
 | --- | --- | --- | --- | --- | --- | --- |
 | WASD / arrows | Move | Move | Swim | A/D aim, W/S power | A/D direction, W/S distance | Move |
 | Mouse movement | Aim on court | Aim pass/shot | Aim pass/shot | Aim shot | Aim throw | Aim on court |
-| Space / left click | Drive / serve | Pass / restart | Pass | Swing | Place jack / throw | Drive / serve |
+| Space / primary action | Drive / serve | Pass / restart | Pass | Swing | Place jack / throw | Drive / serve |
 | E / right click | Lob | Loft / cross | Lead pass | Cycle club | Cycle throwing style | Lob |
 | Q | Smash | Shoot | Shoot | Unassigned | Select shooting style | Smash |
 | Tab | Switch partner | Switch player | Switch player | Native focus | Native focus | Switch partner |
@@ -73,3 +73,28 @@ These are arcade adaptations, not full tournament simulators. Document omitted r
 Do not run a complete predictive simulation and allocate a new geometry every idle animation frame. Cache prediction by the inputs that change it. Reuse materials, buffers, and shared shader logic; dispose resources when replacing a course or scene.
 
 Every future new-game task must include the collection review in AGENTS.md. Compare control meaning, responsiveness, feedback, AI progression, sport depth, pause/restart, and touch accessibility across all games. Improve common weaknesses together and record the evidence in `docs/quality-review.md`.
+
+## Charged mouse input across all eight games
+
+Left click on the playing surface now starts a bounded 1.1-second charge; release executes the selected action once. A short click gives a soft attempt. The visible meter caps at full power and never auto-fires. Right click during charging cancels; right click while idle keeps the sport’s existing secondary action. Keyboard and touch retain their explicit actions and selected power. Game buttons, sliders, links and native focus keep their ordinary behavior.
+
+Padel and pickleball offer a mouse shot selector and a 220 ms release buffer, cleared on contact or rally transition. Power changes pace while preserving the target and assisted net clearance; service pace remains assisted and fixed. Football and water polo offer pass/shoot choices, require possession to begin charging, and consume releases only in physics steps. Pass and shot speed respond to power. Movement keys remain usable while charging. Golf and petanca lock aim and update the trajectory during charging; cancellation restores the previous selected power/distance. Petanca maps the meter to 2–13 m, or 6–10 m while placing the jack.
+
+Charges use pointer capture, are tied to the current game/turn/possession, and are cancelled by pause/help, blur, hidden tabs, pointer cancellation, restart, relevant keyboard actions and loss of capture. No pending release may carry into another point or turn. The shared implementation is `shared/charge.js`; the original six use `shared/sports-mouse.js`, and curling/pool use `shared/precision-app.js`.
+
+| Intent | Curling | 8-ball pool |
+| --- | --- | --- |
+| Mouse move / touch tap | Aim delivery | Aim cue; position cue when ball in hand |
+| Hold left click, release | Charge and deliver | Charge and strike |
+| A/D or left/right | Fine direction | Fine direction |
+| W/S or up/down; wheel | Selected weight | Selected power |
+| Space / main button | Deliver selected weight; hold Space while sliding to sweep | Strike selected power; confirm cue placement when in hand |
+| E / idle right click | Reverse handle rotation | Cycle called eight-ball pocket |
+| Touch extra controls | Rotation, power, direction, hold SWEEP | Power, direction, called pocket, placement sliders and confirm |
+| P / Escape; ? | Pause; help | Pause; help |
+
+Curling: eight stones each, alternating turns, scoring stones touching the house, hammer transfer and blank ends, ties require extra ends, curl, friction, sweeping, take-outs, hog/side/back limits and five-rock guard protection. It uses a shortened sheet, enlarged stones, automatic release and the same camera direction every end; no no-tick, team-position or equipment regulation model. Choose 1/3/6 ends and AI or local two-player play.
+
+Pool: a full 15-object-ball rack, cue ball, six pockets, rolling friction, elastic collisions, cushions, break legality, open table/group assignment, own-group continuation, wrong-first/no-contact/no-rail/scratch fouls, legal cue placement, and called-eight wins/losses. Eight on break is respotted; an illegal break reracks for the opponent. Deliberate arcade rules: only the eight requires a called pocket, ordinary pots may be uncalled, break scratches grant unrestricted ball in hand, planar balls cannot jump, and spin/physical stance/push fouls are omitted. AI and local two-player play are available. No online multiplayer is claimed.
+
+Both new simulations use 1/120-second steps; pool adds four collision microsteps. Use the physics for trajectories and AI shots. Regression evidence must include actual potting/scoring and full seeded completion, not merely elapsed time. See [sport references and adaptations](docs/curling-pool.md).

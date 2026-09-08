@@ -65,7 +65,7 @@ export class FootballGame {
       const q=this.passTarget(p,kind,aim);
       target=q?{x:q.x,z:q.z+(kind==='through'?d*7:0)}:{x:clamp(p.x+(this.random()-.5)*12,-27,27),z:p.z+d*17};
       if(kind==='loft'&&Math.abs(p.z)>23){target.z=d*43;target.x=clamp(target.x,-12,12);}
-      speed=kind==='through'?24:kind==='loft'?22:19;loft=kind==='loft'?8.5:kind==='through'?1.6:1.1;
+      speed=(kind==='through'?24:kind==='loft'?22:19)*(.7+clamp(power,0,1)*(.3/.65));loft=kind==='loft'?8.5:kind==='through'?1.6:1.1;
       this.stats.passes[p.team]++;this.pendingPass={team:p.team,from:p.id,to:q?.id};
       if(q?.team===0){this.controlled=q.id;this.switchLock=.55;}
     }
@@ -207,7 +207,7 @@ export class FootballGame {
     if(['kickoff','restart'].includes(this.stage)){
       this.timer+=dt;const p=this.players[this.ball.owner];
       if((p.team===0&&!input.autoplay)?['pass','through','loft','shoot'].includes(input.action):this.timer>1.2){
-        const type=this.restart?.type;this.kick(p,type==='corner'?'loft':'pass',null);
+        const type=this.restart?.type;this.kick(p,type==='corner'?'loft':'pass',input.aim,input.power??.65);
       }
       return;
     }

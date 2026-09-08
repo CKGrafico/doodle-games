@@ -64,7 +64,7 @@ export class PetancaView {
       if (this.path.visible && key !== this.pathKey) { const preview = trajectory(game.reach, game.mode, game.heading); this.path.geometry.dispose(); this.path.geometry = new THREE.BufferGeometry().setFromPoints(preview.path.map(b => V(b.x, b.y, b.z))); this.path.computeLineDistances(); this.pathKey = key; }
     }
     const rank = ranking(game.balls, game.jack); this.measure.visible = rank.length > 0 && !game.jack.dead && game.stage !== 'rolling';
-    if (this.measure.visible) { const b = game.balls.find(b => b.id === rank[0].id); this.measure.geometry.dispose(); this.measure.geometry = new THREE.BufferGeometry().setFromPoints([V(b.x, .03, b.z), V(game.jack.x, .03, game.jack.z)]); this.measure.computeLineDistances(); }
+    if (this.measure.visible) { const b = game.balls.find(b => b.id === rank[0].id), key = [b.x,b.z,game.jack.x,game.jack.z].join(':'); if (key !== this.measureKey) { this.measureKey = key; this.measure.geometry.dispose(); this.measure.geometry = new THREE.BufferGeometry().setFromPoints([V(b.x, .03, b.z), V(game.jack.x, .03, game.jack.z)]); this.measure.computeLineDistances(); } }
     const focus = this.close ? V(game.jack.x, 0, game.jack.z) : V(0, 0, 0);
     this.camera.position.copy(focus).add(this.close ? V(0, 18, 5) : V(5, 15, 12)); this.camera.lookAt(focus); this.renderer.render(this.scene, this.camera);
   }

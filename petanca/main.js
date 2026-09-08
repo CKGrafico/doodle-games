@@ -1,3 +1,5 @@
+import { sportsMouse } from '../shared/sports-mouse.js';
+let mouse;
 import { isEditing } from '../shared/controls.js';
 function cycleMode(){if(active()&&game.stage!=='jack'){const modes=Array.from($('mode').options,o=>o.value);game.mode=modes[(modes.indexOf(game.mode)+1)%modes.length];sync()}}
 import { PetancaGame, STEP, ranking, clamp } from './simulation.js';
@@ -13,7 +15,7 @@ function tone(type) {
     o.frequency.exponentialRampToValueAtTime(type === 'score' ? 880 : 180, t + .14); g.gain.setValueAtTime(.045, t); g.gain.exponentialRampToValueAtTime(.0001, t + .2); o.connect(g); g.connect(audio.destination); o.start(t); o.stop(t + .21);
   } catch { sound = false; $('sound').textContent = 'Sonido no disponible'; $('sound').setAttribute('aria-pressed', 'false'); }
 }
-function clearInput() { keys.clear(); accumulator = 0; }
+function clearInput() { mouse?.cancel(); keys.clear(); accumulator = 0; }
 function sync() {
   const snapshot = [playing, game.stage, game.turn, game.endNumber, ...game.remaining, ...game.scores, game.reach, game.heading, game.mode].join('|');
   if (snapshot === lastHud) return; lastHud = snapshot;
@@ -45,11 +47,11 @@ function launch() {
   $('notice').textContent = ''; sync();
 }
 function cameraLabel() { $('camera').textContent = view.close ? 'Ver toda la pista' : 'Acercar al boliche'; $('camera').setAttribute('aria-pressed', String(view.close)); }
-function fatal(error) { cancelAnimationFrame(frameId); $('error').hidden = false; $('start').disabled = true; $('start').textContent = 'PISTA NO DISPONIBLE'; console.error(error); }
+function fatal(error) { playing=false;clearInput(); cancelAnimationFrame(frameId); $('error').hidden = false; $('start').disabled = true; $('start').textContent = 'PISTA NO DISPONIBLE'; console.error(error); }
 function animate(now) {
-  frameId = requestAnimationFrame(animate); const dt = Math.min((now - previous) / 1000 || 0, .065); previous = now;
+  frameId = requestAnimationFrame(animate);mouse?.update(now); const dt = Math.min((now - previous) / 1000 || 0, .065); previous = now;
   if (playing && !paused()) {
-    if (active()) {
+    if (active() && !mouse?.charging) {
       const direction = ((keys.has('KeyD') || keys.has('ArrowRight')) ? 1 : 0) - ((keys.has('KeyA') || keys.has('ArrowLeft')) ? 1 : 0), length = ((keys.has('KeyW') || keys.has('ArrowUp')) ? 1 : 0) - ((keys.has('KeyS') || keys.has('ArrowDown')) ? 1 : 0);
       game.heading = clamp(game.heading + direction * dt * .1, -.4188, .4188);
       game.reach = clamp(game.reach + length * dt * 1.2, game.stage === 'jack' ? 6 : 2, game.stage === 'jack' ? 10 : 13);
@@ -92,7 +94,9 @@ function background() { clearInput(); if (playing && !paused() && game.stage !==
 window.addEventListener('blur', background); document.addEventListener('visibilitychange', () => { if (document.hidden) background(); });
 window.addEventListener('resize', () => view?.resize());
 $('court').addEventListener('contextmenu',e=>e.preventDefault());
-$('court').addEventListener('pointermove',e=>{if(view&&active()&&e.pointerType!=='touch'){const p=view.aimAt(e.clientX,e.clientY);if(p){game.aimAt(p);sync()}}});
-$('court').addEventListener('pointerdown', e => { if (!view || !active()) return; e.preventDefault(); const p = view.aimAt(e.clientX, e.clientY); if (p) { game.aimAt(p); sync(); } $('court').focus({ preventScroll: true }); if(e.pointerType!=='touch'){if(e.button===2)cycleMode();else if(e.button===0)launch();} });
+$('court').addEventListener('pointermove',e=>{if(!mouse?.charging&&view&&active()&&e.pointerType!=='touch'){const p=view.aimAt(e.clientX,e.clientY);if(p){game.aimAt(p);sync()}}});
+$('court').addEventListener('pointerdown', e => { if (mouse?.charging || !view || !active()) return; e.preventDefault(); const p = view.aimAt(e.clientX, e.clientY); if (p) { game.aimAt(p); sync(); } $('court').focus({ preventScroll: true });  });
 $('court').addEventListener('webglcontextlost', e => { e.preventDefault(); fatal(new Error('WebGL context lost')); });
+mouse=sportsMouse({locale:'es',canvas:$('court'),game:()=>game,active,context:g=>g.endNumber+':'+g.stage+':'+g.turn+':'+g.remaining.join(',')+':'+g.mode,lockAim:true,secondary:cycleMode,previewPower:p=>game.reach=game.stage==='jack'?6+p*4:2+p*11,restorePower:()=>{const g=game,p=g.reach;return()=>g.reach=p},fire:p=>{game.reach=game.stage==='jack'?6+p*4:2+p*11;launch()}});
+
 try { const { PetancaView } = await import('./render.js'); await document.fonts.ready; view = new PetancaView($('court')); $('start').disabled = false; $('start').textContent = 'ECHAMOS UNA PARTIDA'; requestAnimationFrame(animate); } catch (e) { fatal(e); }

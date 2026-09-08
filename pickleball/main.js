@@ -1,3 +1,5 @@
+import { sportsMouse } from '../shared/sports-mouse.js';
+let mouse;
 import { PickleballGame, STEP } from './simulation.js';
 import { movement, isEditing, installLifecycle, ActionQueue, wantsSprint } from '../shared/controls.js';
 const $ = id => document.getElementById(id), keys = new Set(), actions = new ActionQueue();
@@ -8,6 +10,7 @@ let sound = false, audio, lastHUD = '', ready = false;
 const paused = () => dialogs.some(d => d.open);
 const active = () => playing && !paused() && game.stage !== 'over';
 function clear() {
+  mouse?.cancel();
   keys.clear(); actions.clear(); pointerShot = touchShot = bufferedShot = null; bufferUntil = 0;
   moveTouch = { x: 0, z: 0 }; joystickId = null; accumulator = 0; $('joystick-thumb').style.transform = '';
 }
@@ -58,11 +61,12 @@ function hud() {
 function input() {
   const x = Number(keys.has('KeyD') || keys.has('ArrowRight')) - Number(keys.has('KeyA') || keys.has('ArrowLeft')) + moveTouch.x;
   const z = Number(keys.has('KeyS') || keys.has('ArrowDown')) - Number(keys.has('KeyW') || keys.has('ArrowUp')) + moveTouch.z;
-  const shot = touchShot || pointerShot || (keys.has('KeyF') ? 'dink' : keys.has('KeyE') ? 'lob' : keys.has('KeyQ') ? 'smash' : keys.has('Space') ? 'drive' : performance.now() < bufferUntil ? bufferedShot : null);
-  return { ...movement(x, z, view.camera), sprint: wantsSprint(keys, moveTouch), shot, switch: actions.take() === 'switch', aim: game.aim };
+  const release=mouse?.take();
+  const shot = touchShot || pointerShot || (keys.has('KeyF') ? 'dink' : keys.has('KeyE') ? 'lob' : keys.has('KeyQ') ? 'smash' : keys.has('Space') ? 'drive' : performance.now() < bufferUntil ? bufferedShot : release?.kind??null);
+  return { ...movement(x, z, view.camera), sprint: wantsSprint(keys, moveTouch), shot, power:release?.power, switch: actions.take() === 'switch', aim: release?.aim??game.aim };
 }
 function frame(now) {
-  frameId = requestAnimationFrame(frame); const dt = Math.min((now - previous) / 1000 || 0, .06); previous = now;
+  frameId = requestAnimationFrame(frame);mouse?.update(now); const dt = Math.min((now - previous) / 1000 || 0, .06); previous = now;
   if (active()) {
     accumulator = Math.min(accumulator + dt, STEP * 8);
     while (accumulator >= STEP) { game.step(STEP, input()); accumulator -= STEP; }
@@ -107,7 +111,7 @@ window.addEventListener('keyup', event => keys.delete(event.code));
 $('court').addEventListener('pointermove', event => { if (view && active() && event.pointerType !== 'touch') { const aim = view.aimAt(event.clientX, event.clientY); if (aim) game.aim = aim; } });
 $('court').addEventListener('pointerdown', event => {
   if (!view || !active()) return; event.preventDefault(); $('court').focus(); const aim = view.aimAt(event.clientX, event.clientY); if (aim) game.aim = aim;
-  if (event.pointerType !== 'touch' && [0, 2].includes(event.button)) { pointerShot = event.button === 2 ? 'lob' : 'drive'; buffer(pointerShot); }
+
 });
 window.addEventListener('pointerup', () => { pointerShot = null; }); window.addEventListener('pointercancel', () => { pointerShot = null; });
 $('court').addEventListener('contextmenu', event => event.preventDefault());
@@ -128,6 +132,8 @@ $('joystick').onpointermove = moveStick;
 for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) $('joystick').addEventListener(type, event => { if (event.pointerId === joystickId) { joystickId = null; moveTouch = { x: 0, z: 0 }; $('joystick-thumb').style.transform = ''; } });
 window.addEventListener('resize', () => { if (view) { view.resize(); $('touch-controls').hidden = !playing || !(matchMedia('(pointer:coarse)').matches || innerWidth < 650); } });
 installLifecycle({ canvas: $('court'), dialogs, clear, active, pause, fatal });
+mouse=sportsMouse({canvas:$('court'),game:()=>game,active:()=>active()&&['ready','rally'].includes(game.stage),context:g=>g.stage+':'+g.lastHit,racket:true,choices:[['drive','Drive'],['dink','Dink'],['lob','Lob'],['smash','Smash']],secondary:()=>buffer('lob')});
+
 try {
   const { PickleballView } = await import('./render.js'); await document.fonts.ready;
   view = new PickleballView($('court')); ready = true; $('start').disabled = false; $('start').textContent = 'LET’S PLAY ↗'; requestAnimationFrame(frame);

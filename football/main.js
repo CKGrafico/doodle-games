@@ -1,16 +1,18 @@
+import { sportsMouse } from '../shared/sports-mouse.js';
+let mouse;
 import { TEAM_KEYS, movement, wantsSprint, isEditing } from '../shared/controls.js';
 import {FootballGame,STEP} from './simulation.js';
 const $=id=>document.getElementById(id),keys=new Set(),coarse=matchMedia('(pointer: coarse)').matches;
 let game=new FootballGame(),view,playing=false,previous=0,accumulator=0,action=null,moveTouch={x:0,z:0},sound=false,audio,frame;
 const dialogs=[$('help-dialog'),$('pause-dialog'),$('result-dialog')];const paused=()=>dialogs.some(d=>d.open);
 function tone(type){if(!sound)return;try{audio??=new AudioContext();audio.resume();const o=audio.createOscillator(),g=audio.createGain(),t=audio.currentTime;o.type='triangle';o.frequency.setValueAtTime(type==='goal'?660:type==='kick'?220:420,t);o.frequency.exponentialRampToValueAtTime(type==='goal'?990:100,t+.16);g.gain.setValueAtTime(.06,t);g.gain.exponentialRampToValueAtTime(.0001,t+.2);o.connect(g);g.connect(audio.destination);o.start(t);o.stop(t+.22);}catch{sound=false;}}
-function clear(){keys.clear();action=null;moveTouch={x:0,z:0};$('joystick-thumb').style.transform='';}
+function clear(){mouse?.cancel();keys.clear();action=null;moveTouch={x:0,z:0};$('joystick-thumb').style.transform='';}
 function ui(){document.body.classList.toggle('playing',playing);for(const id of ['lobby','court-note','lobby-footer'])$(id).hidden=playing;for(const id of ['hud','controls','pause','player-label','radar'])$(id).hidden=!playing;$('touch-controls').hidden=!playing||!(coarse||innerWidth<650);$('callout').hidden=!playing;view.setLobby(!playing);}
 function start(){dialogs.forEach(d=>d.close());clear();game=new FootballGame({duration:$('duration').value,formation:$('formation').value,difficulty:$('difficulty').value,assisted:$('assist').checked,seed:Date.now()%2147483647});playing=true;accumulator=0;ui();assist();$('court').tabIndex=0;$('court').focus();tone('kick');}
 function quit(){dialogs.forEach(d=>d.close());clear();playing=false;game=new FootballGame();ui();$('start').focus();}
 function pause(){if(!playing||game.stage==='fulltime')return;clear();if($('pause-dialog').open)$('pause-dialog').close();else if(!paused())$('pause-dialog').showModal();}
 function assist(){$('assist-toggle').textContent=`Movement help: ${game.assisted?'on':'off'}`;$('assist-toggle').setAttribute('aria-pressed',game.assisted);}
-function input(){let x=(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0)+moveTouch.x,z=(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-(keys.has('KeyW')||keys.has('ArrowUp')?1:0)+moveTouch.z;const a=action;action=null;return{...movement(x,z,view.camera),sprint:wantsSprint(keys,moveTouch),action:a,aim:game.aim};}
+function input(){let x=(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0)+moveTouch.x,z=(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-(keys.has('KeyW')||keys.has('ArrowUp')?1:0)+moveTouch.z;const release=mouse?.take(),a=action??release?.kind;action=null;return{...movement(x,z,view.camera),sprint:wantsSprint(keys,moveTouch),action:a,power:release?.power,aim:release?.aim??game.aim};}
 function hud(){
   $('your-goals').textContent=game.goals[0];$('their-goals').textContent=game.goals[1];const secs=Math.floor(game.elapsed/game.duration*90*60);$('match-clock').textContent=`${String(Math.floor(secs/60)).padStart(2,'0')}:${String(secs%60).padStart(2,'0')}`;
   $('match-half').textContent=game.stage==='fulltime'?'FULL-TIME':game.half===1?'FIRST HALF':'SECOND HALF';$('attack-label').textContent=game.half===1?'ATTACK →':'← ATTACK';
@@ -20,12 +22,12 @@ function hud(){
   const pos=p=>({x:90-p.z/52.5*86,y:60+p.x/34*56});for(const p of game.players){const q=pos(p);ctx.fillStyle=p.team===0?'#2a42ad':'#c94b59';ctx.beginPath();ctx.arc(q.x,q.y,p.id===game.controlled?3.5:2.1,0,Math.PI*2);ctx.fill();if(p.id===game.controlled){ctx.strokeStyle='#2a42ad';ctx.beginPath();ctx.arc(q.x,q.y,5,0,Math.PI*2);ctx.stroke();}}
   const b=pos(game.ball);ctx.fillStyle='#bd9a15';ctx.fillRect(b.x-2,b.y-2,4,4);
 }
-function animate(now){frame=requestAnimationFrame(animate);const dt=Math.min((now-previous)/1000||0,.06);previous=now;if(playing&&!paused()){
+function animate(now){frame=requestAnimationFrame(animate);mouse?.update(now);const dt=Math.min((now-previous)/1000||0,.06);previous=now;if(playing&&!paused()){
   accumulator=Math.min(accumulator+dt,STEP*8);while(accumulator>=STEP){game.step(STEP,input());accumulator-=STEP;}
   for(const e of game.drainEvents()){if(['kick','goal','whistle'].includes(e.type))tone(e.type);if(e.type==='fulltime'){$('result-title').textContent=game.goals[0]>game.goals[1]?'Three points for the notebook.':game.goals[0]===game.goals[1]?'Honours even.':'There’s always the return fixture.';$('result-score').textContent=game.goals.join(' : ');$('result-stats').textContent=`Shots ${game.stats.shots.join(' : ')} · Completed passes ${game.stats.completed.join(' : ')} · Saves ${game.stats.saves.join(' : ')}`;$('result-dialog').showModal();clear();}}
   hud();
 }else accumulator=0;const p=view.render(game,dt,now/1000);$('player-label').style.left=p.x+'px';$('player-label').style.top=p.y+'px';}
-function fatal(e){cancelAnimationFrame(frame);$('error').hidden=false;$('start').disabled=true;console.error(e);}
+function fatal(e){playing=false;clear();cancelAnimationFrame(frame);$('error').hidden=false;$('start').disabled=true;console.error(e);}
 $('start').onclick=()=>view&&start();$('restart').onclick=start;$('rematch').onclick=start;$('quit').onclick=quit;$('result-quit').onclick=quit;$('pause').onclick=pause;$('resume').onclick=()=>{$('pause-dialog').close();clear();};$('help').onclick=()=>{clear();$('help-dialog').showModal();};$('reload').onclick=()=>location.reload();
 for(const b of document.querySelectorAll('[data-close]'))b.onclick=()=>$(b.dataset.close).close();dialogs.forEach(d=>d.addEventListener('close',clear));
 $('sound').onclick=()=>{sound=!sound;$('sound').textContent=sound?'Sound on':'Sound off';$('sound').setAttribute('aria-pressed',sound);tone('kick');};
@@ -33,9 +35,11 @@ $('camera').onclick=()=>{if(!view)return;view.mode=view.mode==='broadcast'?'tact
 const map={...TEAM_KEYS,KeyF:'tackle'};
 window.addEventListener('keydown',e=>{if(isEditing(e.target))return;if(e.code==='Escape'||e.code==='KeyP'){if(!paused()){e.preventDefault();pause();}return;}if(e.key==='?'&&!paused()){$('help').click();return;}if(!playing||paused())return;if(map[e.code]||e.code.startsWith('Arrow'))e.preventDefault();keys.add(e.code);if(!e.repeat&&map[e.code])action=map[e.code];});window.addEventListener('keyup',e=>keys.delete(e.code));
 window.addEventListener('blur',()=>{clear();if(playing&&!paused())pause();});document.addEventListener('visibilitychange',()=>{if(document.hidden){clear();if(playing&&!paused())pause();}});window.addEventListener('resize',()=>{if(view){view.resize();$('touch-controls').hidden=!playing||!(coarse||innerWidth<650);}});
-$('court').addEventListener('pointermove',e=>{if(view&&playing&&!paused()&&e.pointerType!=='touch')game.aim=view.aimAt(e.clientX,e.clientY);});$('court').addEventListener('pointerdown',e=>{if(!view||!playing||paused())return;e.preventDefault();$('court').focus();game.aim=view.aimAt(e.clientX,e.clientY);if(e.pointerType!=='touch')action=e.button===2?'loft':'pass';});$('court').addEventListener('contextmenu',e=>e.preventDefault());
+$('court').addEventListener('pointermove',e=>{if(view&&playing&&!paused()&&e.pointerType!=='touch')game.aim=view.aimAt(e.clientX,e.clientY);});$('court').addEventListener('pointerdown',e=>{if(!view||!playing||paused())return;e.preventDefault();$('court').focus();game.aim=view.aimAt(e.clientX,e.clientY);});$('court').addEventListener('contextmenu',e=>e.preventDefault());
 for(const b of document.querySelectorAll('[data-action]'))b.addEventListener('pointerdown',e=>{e.preventDefault();if(playing&&!paused())action=b.dataset.action;});
 let joystickId=null;function stick(e){if(e.pointerId!==joystickId)return;const r=$('joystick').getBoundingClientRect(),radius=r.width*.34;let x=(e.clientX-r.left-r.width/2)/radius,z=(e.clientY-r.top-r.height/2)/radius;const n=Math.max(1,Math.hypot(x,z));x/=n;z/=n;moveTouch={x,z};$('joystick-thumb').style.transform=`translate(${x*radius}px,${z*radius}px)`;}
 $('joystick').addEventListener('pointerdown',e=>{e.preventDefault();joystickId=e.pointerId;$('joystick').setPointerCapture(e.pointerId);stick(e);});$('joystick').addEventListener('pointermove',stick);for(const name of ['pointerup','pointercancel','lostpointercapture'])$('joystick').addEventListener(name,e=>{if(e.pointerId===joystickId){joystickId=null;moveTouch={x:0,z:0};$('joystick-thumb').style.transform='';}});
 $('court').addEventListener('webglcontextlost',e=>{e.preventDefault();fatal(new Error('WebGL context lost'));});
+mouse=sportsMouse({canvas:$('court'),game:()=>game,active:()=>playing&&!paused()&&game.ball.owner===game.controlled&&['playing','kickoff','restart'].includes(game.stage),context:g=>g.stage+':'+g.ball.owner,choices:[['pass','Pass'],['through','Through'],['loft','Loft'],['shoot','Shoot']],secondary:()=>action='loft'});
+
 try{const {FootballView}=await import('./render.js');await document.fonts.ready;view=new FootballView($('court'));requestAnimationFrame(animate);}catch(e){fatal(e);}

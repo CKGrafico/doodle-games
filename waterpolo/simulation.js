@@ -45,7 +45,7 @@ export class WaterPoloGame {
     const d = this.d(p.team), shoot = kind === 'shoot', q = shoot ? null : this.target(p, kind, aim), keeper = this.players[(1 - p.team) * 7];
     const tx = shoot ? (aim ? clamp(aim.x, -1.16, 1.16) : -Math.sign(keeper.x || this.random() - .5) * 1.02) : clamp(q.x + q.vx * .2, -9.2, 9.2);
     const tz = shoot ? d * 15.5 : clamp(q.z + d * (kind === 'lead' ? 1.8 : 0), -13, 13), dx = tx - p.x, dz = tz - p.z, length = Math.hypot(dx, dz) || 1;
-    const speed = shoot ? 15 + clamp(power, 0, 1) * 7 : kind === 'lead' ? 13 : 11, flight = Math.max(.05, (length - .65) / speed);
+    const speed = shoot ? 15 + clamp(power, 0, 1) * 7 : (kind === 'lead' ? 13 : 11) * (.7 + clamp(power, 0, 1) * (.3 / .7)), flight = Math.max(.05, (length - .65) / speed);
     // Passes arrive at hand height; shots arrive below the crossbar.
     const vy = ((shoot ? .42 : .65) - .65 + 2.75 * flight * flight) / flight;
     this.ball = { x: p.x + dx / length * .65, y: .65, z: p.z + dz / length * .65, vx: dx / length * speed, vy, vz: dz / length * speed, owner: null };

@@ -19,7 +19,7 @@ Quality work on the existing games is part of a new-game request, not an optiona
 
 - Visual inspiration: [Doodle District](https://doodleshooter.vercel.app/) by Evan Milenko. Preserve the prominent homepage credit and [original post link](https://x.com/EvanMilenko/status/2096356126145015885). Do not imply endorsement or copy third-party implementation/assets.
 - Local implementation baseline: `padel/`. Also reuse improvements from later games, such as petanca's turn feedback and golf's cached trajectory preview.
-- Shared code: `shared/ink.js`, `shared/controls.js`, `shared/theme.css`, and `shared/racket-player.js`. Fix common behavior here instead of introducing competing copies.
+- Shared code: `shared/ink.js`, `shared/controls.js`, `shared/theme.css`, and `shared/racket-player.js`. Charged mouse input lives in `shared/charge.js` and `shared/sports-mouse.js`; stationary games can reuse `shared/precision-app.js` and `shared/board-view.js`. Fix common behavior here instead of introducing competing copies.
 - Each sport keeps its own folder with `index.html`, `main.js`, `render.js`, `simulation.js`, and optional `rules.js`. Simulations must remain importable in Node without DOM, WebGL, or audio.
 - Keep the static, no-build GitHub Pages site. Use relative URLs, vendored Three.js, local fonts, and the existing `/doodle-games/<sport>/` paths. Do not migrate hosting or add a backend for a routine game addition.
 - Keep authored source readable. Do not hand-minify new code. Preserve unrelated changes and inspect the remote branch before publishing. Never force-push to bypass newer work.
@@ -31,3 +31,9 @@ Run `node scripts/check.mjs` and `node --test tests/*.test.mjs` (also exposed as
 For mechanics changes, add targeted regression tests that would have caught the defect. For a new sport, cover its defining rule, valid and invalid scoring, restarts/turn transitions, and a complete seeded game or round. Check finite coordinates and reachable actions. Do not replace real progression assertions with “no exception” or “timer ended.”
 
 Document what was actually tested, the remaining limitations, and deployment status. Passing tests is necessary evidence; it is not proof of enjoyable gameplay or a visually correct mobile layout.
+
+## Mouse and menu requirements for future additions
+
+The user requires deliberate mouse interaction: hold left click to charge, show power, release once to play, right click to cancel. Preserve keyboard and touch alternatives. Reuse the existing charge lifecycle and verify that power changes physics, cancellation cannot fire, and no release leaks into another turn. Precision aiming locks during a charge; movement sports keep movement available. Review all current games, including curling and 8-ball pool, every time another sport is requested.
+
+The collection menu must show each game's actual illustrated 3D scene with relevant players, equipment and surroundings, following the user's supplied pickleball scene reference. Do not return to flat CSS court icons. Register new games in `menu.js` and use bounded, lazy, one-frame previews with graphics resources released after capture. A missing preview must never prevent opening the game. Verify framing visually when browser QA is requested; source checks do not prove appearance.
