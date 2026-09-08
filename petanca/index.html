@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f7f4e9"><meta name="description" content="Petanca en Three.js: tres bolas, un boliche y una partida a 13 puntos contra el barrio."><title>Petanca District | Doodle Games</title><link rel="stylesheet" href="./style.css"><script type="module" src="./main.js"></script></head>
+<body>
+<header><a class="logo" href="../" aria-label="Volver a Doodle Games">pd<span>.</span></a><span class="edition">EL CUADERNO / Nº 05</span><nav><button id="sound" aria-pressed="false">Sonido: no</button><button id="help">Cómo jugar</button><button id="pause" hidden>Pausa</button></nav></header>
+<main>
+  <div class="arena"><canvas id="court" tabindex="0" aria-label="Pista de petanca en tres dimensiones. Usa los controles para apuntar y lanzar."></canvas><div class="annotation" aria-hidden="true">un boliche,<br>muchas posibilidades.</div></div>
+  <aside class="panel">
+    <p class="eyebrow">TRES BOLAS. UN BOLICHE.</p><h1>PETANCA<br><span>DISTRICT<i>.</i></span></h1>
+    <section id="lobby"><p class="intro">La próxima partida es tuya.</p><label for="difficulty">Tu rival</label><select id="difficulty"><option value="casual">Paseo por el parque</option><option value="club" selected>El barrio</option><option value="pro">Campeón de la plaza</option></select><button id="start" class="primary" disabled>PREPARANDO LA PISTA…</button><p class="small">Individual · 3 bolas por jugador · A 13 puntos</p></section>
+    <section id="match" hidden>
+      <div class="scoreboard" aria-label="Marcador"><div>TÚ <b id="blue-score">0</b></div><small>A 13</small><div class="red">EL BARRIO <b id="red-score">0</b></div></div>
+      <div class="end-info"><span id="end-number">Mano 1</span><span id="remaining">3 / 3 bolas</span></div>
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+      <fieldset id="aim-controls"><legend id="aim-title">Tu lanzamiento</legend>
+        <label for="mode">Tipo de lanzamiento</label><select id="mode"><option value="point">Arrimar · rodar hacia el boliche</option><option value="lob">Lanzar alto · caída más vertical</option><option value="shoot">Tirar · golpear una bola</option></select>
+        <label for="heading">Dirección <output id="heading-value">0°</output></label><input id="heading" type="range" min="-24" max="24" step=".1" value="0">
+        <label for="reach">Distancia <output id="reach-value">8,0 m</output></label><input id="reach" type="range" min="2" max="13" step=".02" value="8">
+        <button id="aim-jack" class="secondary">Apuntar al boliche</button><button id="throw" class="primary">LANZAR</button>
+      </fieldset>
+      <button id="next" class="primary" hidden>SIGUIENTE MANO</button><p id="measurement" class="small"></p><p id="notice" class="small" role="status"></p>
+    </section>
+    <p class="credit">De <a href="../">Doodle Games</a>. Muy, muy, MUY inspirados en <a href="https://x.com/EvanMilenko/status/2096356126145015885" target="_blank" rel="noreferrer">Evan Milenko</a>.</p>
+  </aside>
+  <div class="view-controls"><button id="camera" aria-pressed="false">Acercar al boliche</button><span>A / D: dirección · W / S: distancia · Espacio: lanzar</span></div>
+</main>
+<dialog id="help-dialog"><button class="close" data-close="help-dialog" aria-label="Cerrar instrucciones">×</button><h2>¿Arrimas o tiras?</h2><p>Controlas las bolas azules; el barrio juega con las rojas. El objetivo es quedar cerca del boliche amarillo.</p><ol><li><b>Coloca el boliche.</b> Elige entre 6 y 10 metros y pulsa Colocar. Después lanza tu primera bola.</li><li><b>Ajusta el tiro.</b> Toca la pista o utiliza dirección y distancia. La guía muestra el recorrido en una pista vacía; los choques pueden cambiarlo.</li><li><b>Juega quien va perdiendo.</b> Sigue lanzando quien no tiene la bola más cercana. Si alguien agota sus tres bolas, lanza el otro.</li><li><b>Cuenta los puntos.</b> Al terminar la mano, cada bola más cercana que la mejor del rival suma un punto. Gana quien llega a 13.</li></ol><p>Puedes golpear bolas y mover el boliche. Una bola que cruza por completo el límite queda fuera. Si sale el boliche, solo puntúa quien aún tenga bolas cuando el rival no tenga ninguna; en los demás casos la mano es nula.</p><p class="small">Versión arcade: bolas ampliadas para verlas mejor, superficie uniforme y círculo fijo en cada mano. Empates de distancia: se alternan tiros; si termináis empatados, no puntúa nadie. Los controles funcionan con ratón, teclado y pantalla táctil.</p><button class="primary" data-close="help-dialog">A LA PISTA</button></dialog>
+<dialog id="pause-dialog"><h2>Sin prisa.</h2><button class="primary" data-close="pause-dialog">SEGUIR JUGANDO</button><button id="restart" class="secondary">Nueva partida</button><button id="quit" class="secondary">Volver al inicio</button></dialog>
+<dialog id="result-dialog"><p class="eyebrow">FIN DE PARTIDA</p><h2 id="result-title"></h2><p id="result-score" class="result-score"></p><p id="result-detail"></p><button id="rematch" class="primary">LA REVANCHA</button><a href="../" class="secondary">Volver a Doodle Games</a></dialog>
+<section id="error" role="alert" hidden><h2>No se pudo abrir la pista.</h2><p id="error-text">Activa la aceleración gráfica del navegador y recarga la página.</p><button id="reload" class="primary">RECARGAR</button><a href="../">Volver al cuaderno</a></section>
+<noscript>Activa JavaScript para jugar a Petanca District.</noscript>
+</body></html>
