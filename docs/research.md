@@ -16,3 +16,9 @@ The game omits fouls, cards, injuries, substitutions, added time, penalties, and
 - [USGA Rule 17](https://www.usga.org/content/usga/home-page/rules/rules-2019/rules-of-golf/rule-17.html) informed the one-stroke penalty for water relief.
 
 The game uses compact fictional holes, reduced distances, four representative clubs, a visible trajectory preview, and immediate replay from the previous spot after water or out of bounds.
+
+## Water polo
+
+- [World Aquatics Competition Regulations](https://www.worldaquatics.com/rules/competition-regulations) informed seven-player teams, four periods, pool markings, goal dimensions, and the possession clock.
+
+The arcade version compresses match time and simplifies fouls, exclusions, penalty throws, substitutions, and timeouts. The 30-second possession clock, goalkeepers, turnovers, passing, shooting, and four-quarter structure remain central to play.
