@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f7f4e9">
+  <meta name="description" content="Play doubles padel in a hand-drawn Three.js district. Read the glass, place a lob, and own the court.">
+  <title>Padel District</title>
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./main.js"></script>
+</head>
+<body>
+  <main id="arena" aria-label="Padel court"><canvas id="court" aria-label="Three-dimensional padel court"></canvas></main>
+  <div class="paper-grain" aria-hidden="true"></div>
+  <header class="masthead">
+    <a class="wordmark" href="../" aria-label="Padel District arcade home">pd<span class="wordmark-ball">.</span></a>
+    <span class="edition">THE NOTEBOOK SERIES <span>/</span> No. 01</span>
+    <nav class="utilities" aria-label="Game settings">
+      <button id="sound" class="text-button" aria-pressed="false">Sound off</button>
+      <button id="help" class="text-button">How to play <span class="key">?</span></button>
+      <button id="pause" class="text-button" hidden>Pause <span class="key">Esc</span></button>
+    </nav>
+  </header>
+
+  <section id="lobby" class="lobby" aria-labelledby="game-title">
+    <p class="eyebrow"><span class="tiny-rule"></span> TWO TEAMS. FOUR WALLS.</p>
+    <h1 id="game-title">PADEL<br><span>DISTRICT</span><i class="title-dot">.</i></h1>
+    <p class="intro">A little court. A lot of possibilities.</p>
+    <div class="setup">
+      <div class="setup-row"><label for="mode">The match</label><select id="mode"><option value="quick">Quick match · first to 3 games</option><option value="set">One set · first to 6, win by 2</option><option value="practice">Warm-up · keep the rallies going</option></select></div>
+      <div class="setup-row"><label for="difficulty">The opposition</label><select id="difficulty"><option value="casual">Casual</option><option value="club" selected>Club players</option><option value="pro">District pros</option></select></div>
+      <label class="assist-label"><input type="checkbox" id="assist" checked><span>Help me get to the ball</span><span class="hand-note">good for a first game</span></label>
+      <button id="start" class="primary">LET’S PLAY <span aria-hidden="true">↗</span></button>
+      <p class="start-note">You + an AI partner vs. the district.</p>
+    </div>
+  </section>
+  <aside id="court-note" class="court-note" aria-hidden="true"><span>yes, the walls<br>are part of the game.</span><span class="note-arrow">↙</span></aside>
+  <footer id="lobby-footer" class="lobby-footer"><span>DRAWN TO PLAY.</span><span>Part of <a href="../">Doodle Games</a> · Inspired by <a href="https://x.com/EvanMilenko/status/2096356126145015885" target="_blank" rel="noreferrer">Evan Milenko</a></span></footer>
+
+  <section id="hud" class="hud" hidden aria-label="Match scoreboard">
+    <div class="scoreboard"><div class="score-team blue"><span class="team-label">YOU & CO.</span><b id="your-points">0</b><span class="games"><span id="your-games">0</span> games</span></div><div class="score-centre"><span id="match-mode">QUICK MATCH</span><span class="versus">vs.</span><span id="serve-label">YOUR SERVE</span></div><div class="score-team red"><span class="team-label">THE DISTRICT</span><b id="their-points">0</b><span class="games"><span id="their-games">0</span> games</span></div></div>
+    <div class="rally-count"><span id="rally-count">0</span><small>RALLY</small></div>
+  </section>
+  <div id="callout" class="callout" hidden role="status" aria-live="polite"><strong id="callout-title">Your serve</strong><span id="callout-detail">Press Space or tap Hit</span></div>
+  <div id="player-label" class="player-label" hidden aria-hidden="true">YOU</div>
+  <div id="shot-notice" class="shot-notice" hidden></div>
+  <section id="controls" class="controls" hidden aria-label="Match controls">
+    <div class="desktop-controls"><span><kbd>W A S D</kbd> move</span><span><kbd>SPACE</kbd> hit</span><span><kbd>E</kbd> lob</span><span><kbd>Q</kbd> smash</span><span>mouse to aim</span></div>
+    <div class="control-actions"><button id="camera" class="small-button">Camera: raised</button><button id="assist-toggle" class="small-button" aria-pressed="true">Movement help: on</button></div>
+  </section>
+  <section id="touch-controls" class="touch-controls" hidden aria-label="Touch controls">
+    <div id="joystick" class="joystick" role="group" aria-label="Drag to move"><div id="joystick-thumb"></div><span>MOVE</span></div>
+    <div class="touch-shots"><button data-shot="lob" class="shot minor">LOB</button><button data-shot="smash" class="shot minor">SMASH</button><button data-shot="drive" class="shot hit">HIT</button></div>
+  </section>
+  <dialog id="help-dialog" class="paper-dialog">
+    <button class="close-dialog" data-close="help-dialog" aria-label="Close instructions">×</button>
+    <p class="eyebrow">A QUICK COURT BRIEFING</p><h2>Play the bounce.</h2>
+    <p>Padel is doubles, with a net and playable walls. You control the blue player marked <strong>YOU</strong>. Your partner covers the other side.</p>
+    <ol class="rules-list"><li><strong>Serve diagonally.</strong> Press Hit. Your player bounces the ball and serves underarm. The return must bounce first.</li><li><strong>Ground, then glass.</strong> Let the ball rebound off your walls, then hit before its second ground bounce. Hitting the opponents’ wall before their ground loses the point.</li><li><strong>Find the space.</strong> Aim with the mouse or tap the far court. Hold Space to return, E for a high lob, or Q for a smash when the ball is high.</li></ol>
+    <div class="key-grid"><span><kbd>WASD / arrows</kbd> Move</span><span><kbd>Space / click</kbd> Hit</span><span><kbd>E</kbd> Lob</span><span><kbd>Q</kbd> Smash a high ball</span><span><kbd>Tab</kbd> Switch partner</span><span><kbd>Esc / P</kbd> Pause</span></div>
+    <p class="help-small">Movement help automatically positions you; directional input always takes over. On a touch screen, use the movement pad and shot buttons.</p>
+    <p class="help-small">Quick match: first to 3 games, deciding point at 40–40. One set: advantage scoring, 7-point tie-break at 6–6. Warm-up has no match winner. This is an arcade adaptation: assisted strokes and no out-of-court retrieval.</p>
+    <button class="primary" data-close="help-dialog">GOT IT</button>
+  </dialog>
+  <dialog id="pause-dialog" class="paper-dialog compact"><p class="eyebrow">TAKE A BREATHER</p><h2>Back in a minute?</h2><button id="resume" class="primary">BACK TO COURT</button><button id="restart" class="secondary">Restart this match</button><button id="quit" class="text-button">Return to notebook</button></dialog>
+  <dialog id="result-dialog" class="paper-dialog compact"><p class="eyebrow">THAT’S A WRAP</p><h2 id="result-title">The district is yours.</h2><div id="result-score" class="result-score">3 : 0</div><p id="result-stats"></p><button id="rematch" class="primary">ONE MORE?</button><button id="result-quit" class="secondary">Back to notebook</button></dialog>
+  <section id="error" class="error-panel" hidden role="alert"><h2>This court needs WebGL.</h2><p id="error-text">Enable graphics acceleration in your browser, then reload to play.</p><button id="reload" class="primary">RELOAD THE COURT</button></section>
+  <noscript><div class="error-panel">Enable JavaScript to play Padel District.</div></noscript>
+</body>
+</html>

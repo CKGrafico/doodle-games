@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f7f4e9">
+  <meta name="description" content="Play 11 versus 11 football in a hand-drawn Three.js district. Pass, shoot, and lead your team to full-time.">
+  <title>Football District</title>
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./main.js"></script>
+</head>
+<body>
+  <main id="arena" aria-label="Football pitch"><canvas id="court" aria-label="Three-dimensional football pitch"></canvas></main>
+  <div class="paper-grain" aria-hidden="true"></div>
+  <header class="masthead">
+    <a class="wordmark" href="../" aria-label="Football District arcade home">fd<span class="wordmark-ball">.</span></a>
+    <span class="edition">THE NOTEBOOK SERIES <span>/</span> No. 02</span>
+    <nav class="utilities" aria-label="Game settings">
+      <button id="sound" class="text-button" aria-pressed="false">Sound off</button>
+      <button id="help" class="text-button">How to play <span class="key">?</span></button>
+      <button id="pause" class="text-button" hidden>Pause <span class="key">Esc</span></button>
+    </nav>
+  </header>
+
+  <section id="lobby" class="lobby" aria-labelledby="game-title">
+    <p class="eyebrow"><span class="tiny-rule"></span> ELEVEN A SIDE. ONE BEAUTIFUL GAME.</p>
+    <h1 id="game-title">FOOTBALL<br><span>DISTRICT</span><i class="title-dot">.</i></h1>
+    <p class="intro">Big match energy. Back-of-the-notebook style.</p>
+    <div class="setup">
+      <div class="setup-columns"><div class="setup-row"><label for="duration">Match length</label><select id="duration"><option value="180">3 minutes</option><option value="300">5 minutes</option><option value="600">10 minutes</option></select></div><div class="setup-row"><label for="formation">Your formation</label><select id="formation"><option value="433">4–3–3</option><option value="442">4–4–2</option></select></div></div>
+      <div class="setup-row"><label for="difficulty">The opposition</label><select id="difficulty"><option value="casual">Sunday league</option><option value="club" selected>District FC</option><option value="pro">Cup contenders</option></select></div>
+      <label class="assist-label"><input type="checkbox" id="assist" checked><span>Help position my player</span><span class="hand-note">good for a first game</span></label>
+      <button id="start" class="primary">KICK IT OFF <span aria-hidden="true">↗</span></button>
+      <p class="start-note">You captain blue. Your teammates play alongside you.</p>
+    </div>
+  </section>
+  <aside id="court-note" class="court-note" aria-hidden="true"><span>all twenty-two.<br>yes, including the keepers.</span><span class="note-arrow">↙</span></aside>
+  <footer id="lobby-footer" class="lobby-footer"><span>DRAWN TO PLAY.</span><span>Part of <a href="../">Doodle Games</a> · Inspired by <a href="https://x.com/EvanMilenko/status/2096356126145015885" target="_blank" rel="noreferrer">Evan Milenko</a></span></footer>
+
+  <section id="hud" class="hud" hidden aria-label="Match scoreboard"><div class="scoreboard"><div class="score-team blue"><span class="team-label">NOTEBOOK FC</span><b id="your-goals">0</b></div><div class="score-centre"><span id="match-half">FIRST HALF</span><strong id="match-clock">00:00</strong><span id="attack-label">ATTACK →</span></div><div class="score-team red"><span class="team-label">DISTRICT FC</span><b id="their-goals">0</b></div></div></section>
+  <aside id="radar" class="radar" hidden><canvas id="minimap" width="180" height="120" aria-label="Positions of all 22 players on the pitch"></canvas><div><span id="possession-label">POSSESSION 50%</span><span id="player-number">#10</span></div><progress id="stamina" value="1" max="1" aria-label="Selected player stamina"></progress></aside>
+  <div id="callout" class="callout" hidden role="status" aria-live="polite"><strong id="callout-title">Kick-off</strong><span id="callout-detail">Press Space or tap Pass</span></div>
+  <div id="player-label" class="player-label" hidden aria-hidden="true">YOU</div>
+  <div id="shot-notice" class="shot-notice" hidden></div>
+  <section id="controls" class="controls" hidden aria-label="Match controls">
+    <div class="desktop-controls"><span><kbd>W A S D</kbd> move</span><span><kbd>SPACE</kbd> pass</span><span><kbd>J</kbd> shoot</span><span><kbd>E</kbd> switch</span><span><kbd>Q</kbd> tackle</span></div>
+    <div class="control-actions"><button id="camera" class="small-button">Camera: broadcast</button><button id="assist-toggle" class="small-button" aria-pressed="true">Movement help: on</button></div>
+  </section>
+  <section id="touch-controls" class="touch-controls" hidden aria-label="Touch controls">
+    <div id="joystick" class="joystick" role="group" aria-label="Drag to move"><div id="joystick-thumb"></div><span>MOVE</span></div>
+    <div class="touch-shots football-shots"><button data-action="switch" class="shot minor">SWITCH</button><button data-action="tackle" class="shot minor">TACKLE</button><button data-action="loft" class="shot minor">CROSS</button><button data-action="pass" class="shot">PASS</button><button data-action="shoot" class="shot hit">SHOOT</button></div>
+  </section>
+  <dialog id="help-dialog" class="paper-dialog">
+    <button class="close-dialog" data-close="help-dialog" aria-label="Close instructions">×</button>
+    <p class="eyebrow">THE MATCHDAY BRIEFING</p><h2>Find the extra pass.</h2>
+    <p>You control the blue player marked <strong>YOU</strong>. Ten teammates move, defend, and make runs. Red fields a full eleven too.</p>
+    <ol class="rules-list"><li><strong>Build your attack.</strong> Press Space to pass to a teammate in space. K plays a through ball, L a lofted pass or cross. Control follows your receiver.</li><li><strong>Take your chance.</strong> J shoots toward goal. Move the mouse to choose your corner; without a mouse, your player aims automatically. Hold Shift while moving to sprint.</li><li><strong>Win it back.</strong> E switches to a nearby defender. Q tackles when you are close. Movement help positions your player until you take over with WASD.</li></ol>
+    <div class="key-grid"><span><kbd>WASD / arrows</kbd> Move</span><span><kbd>Space</kbd> Pass</span><span><kbd>J / click</kbd> Shoot</span><span><kbd>K / L</kbd> Through / loft</span><span><kbd>E / Q</kbd> Switch / tackle</span><span><kbd>Esc / P</kbd> Pause</span></div>
+    <p class="help-small">Watch the attack arrow when teams change ends at half-time. Touch players can use the movement pad, Pass, Shoot, Cross, Switch, and Tackle.</p>
+    <p class="help-small">Arcade friendly rules: goals, keepers, corners, throw-ins, goal kicks, and offside on receiving a pass. Match time runs during play. Draws stand. Tackles are clean; there are no cards, injuries, substitutions, or penalties.</p>
+    <button class="primary" data-close="help-dialog">GOT IT</button>
+  </dialog>
+  <dialog id="pause-dialog" class="paper-dialog compact"><p class="eyebrow">TAKE A BREATHER</p><h2>Back in a minute?</h2><button id="resume" class="primary">BACK TO THE PITCH</button><button id="restart" class="secondary">Restart this match</button><button id="quit" class="text-button">Return to notebook</button></dialog>
+  <dialog id="result-dialog" class="paper-dialog compact"><p class="eyebrow">THAT’S A WRAP</p><h2 id="result-title">The district is yours.</h2><div id="result-score" class="result-score">0 : 0</div><p id="result-stats"></p><button id="rematch" class="primary">ONE MORE?</button><button id="result-quit" class="secondary">Back to notebook</button></dialog>
+  <section id="error" class="error-panel" hidden role="alert"><h2>This pitch needs WebGL.</h2><p id="error-text">Enable graphics acceleration in your browser, then reload to play.</p><button id="reload" class="primary">RELOAD THE PITCH</button></section>
+  <noscript><div class="error-panel">Enable JavaScript to play Football District.</div></noscript>
+</body>
+</html>

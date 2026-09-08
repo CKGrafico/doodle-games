@@ -1,0 +1,5 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {FootballGame,STEP} from '../football/simulation.js';import {classifyExit,offsidePlayers} from '../football/rules.js';
+test('football fields two complete teams',()=>{const g=new FootballGame();assert.equal(g.players.length,22);assert.equal(g.players.filter(p=>p.keeper).length,2)});
+test('kick-off starts and a match reaches full-time',()=>{const g=new FootballGame({duration:8,seed:4});for(let i=0;i<2000&&g.stage!=='fulltime';i++)g.step(STEP,{autoplay:true});assert.equal(g.stage,'fulltime');assert.ok(g.goals.every(Number.isFinite))});
+test('whole ball crossing between posts is a goal',()=>assert.equal(classifyExit({x:0,y:1,z:53},1,1).type,'goal'));
+test('offside is captured when an attacker is beyond the ball and second-last defender',()=>{const players=[{id:1,team:0,x:0,z:-40},{id:2,team:0,x:0,z:-10},{id:11,team:1,x:0,z:-30},{id:12,team:1,x:0,z:-25},{id:13,team:1,x:0,z:10}];assert.ok(offsidePlayers(players,{z:-10},0,1).includes(1))});
