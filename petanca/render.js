@@ -2,11 +2,8 @@ import * as THREE from '../vendor/three.module.min.js';
 import { LANE, trajectory, ranking } from './simulation.js';
 const BLUE = 0x2a42ad, RED = 0xc94b59, PAPER = 0xf7f4e9, GOLD = 0xb49b1b;
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
-function pen(color, fill = .05) {
-  return new THREE.ShaderMaterial({ uniforms: { ink: { value: new THREE.Color(color) }, paper: { value: new THREE.Color(PAPER) }, fill: { value: fill } },
-    vertexShader: 'varying vec3 w; varying vec3 n; void main(){vec4 p=modelMatrix*vec4(position,1.); w=p.xyz; n=normalize(mat3(modelMatrix)*normal); gl_Position=projectionMatrix*viewMatrix*p;}',
-    fragmentShader: 'uniform vec3 ink; uniform vec3 paper; uniform float fill; varying vec3 w; varying vec3 n; void main(){float light=dot(normalize(n),normalize(vec3(-.4,1.,.5)))*.5+.5; vec2 p=abs(n.y)>.6?w.xz:w.xy; float h=1.-smoothstep(.04,.15,abs(fract((p.x+p.y)*18.)-.5)); float h2=1.-smoothstep(.04,.15,abs(fract((p.x-p.y)*22.)-.5)); gl_FragColor=vec4(mix(paper,ink,clamp(fill+(1.-light)*.14+h*(1.-light)*.25+h2*max(0.,.4-light)*.4,0.,.92)),1.);}' });
-}
+import { penMaterial as pen } from '../shared/ink.js';
+
 export class PetancaView {
   constructor(canvas) {
     this.canvas = canvas; this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });

@@ -1,3 +1,4 @@
+import { movement, isEditing } from '../shared/controls.js';
 import { PadelGame, FIXED_STEP } from './simulation.js';
 
 const $=id=>document.getElementById(id);
@@ -77,8 +78,7 @@ function getInput() {
   let x=(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0)+moveTouch.x;
   let z=(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-(keys.has('KeyW')||keys.has('ArrowUp')?1:0)+moveTouch.z;
   // Map screen-relative movement onto the court, including the angled camera.
-  const yaw=Math.atan2(view.camera.position.x,view.camera.position.z);
-  const moveX=x*Math.cos(yaw)+z*Math.sin(yaw),moveZ=-x*Math.sin(yaw)+z*Math.cos(yaw);
+  const {moveX,moveZ}=movement(x,z,view.camera);
   return {moveX,moveZ,sprint:keys.has('ShiftLeft')||keys.has('ShiftRight'),
     shot:touchShot||pointerShot||(keys.has('KeyE')?'lob':keys.has('KeyQ')?'smash':keys.has('Space')?'drive':null),
     switch:keys.has('Tab'),aim:game.aim};
@@ -111,11 +111,11 @@ $('help').addEventListener('click',showHelp);$('reload').addEventListener('click
 for(const button of document.querySelectorAll('[data-close]'))button.addEventListener('click',()=>$(button.dataset.close).close());
 for(const dialog of dialogs)dialog.addEventListener('close',clearInput);
 $('sound').addEventListener('click',()=>{soundOn=!soundOn;$('sound').textContent=soundOn?'Sound on':'Sound off';$('sound').setAttribute('aria-pressed',String(soundOn));if(soundOn)beep('hit');});
-$('camera').addEventListener('click',()=>{view.mode=view.mode==='raised'?'end':'raised';$('camera').textContent=`Camera: ${view.mode==='raised'?'raised':'end court'}`;$('court').focus();});
+$('camera').addEventListener('click',()=>{if(!view)return;view.mode=view.mode==='raised'?'end':'raised';$('camera').textContent=`Camera: ${view.mode==='raised'?'raised':'end court'}`;$('court').focus();});
 $('assist-toggle').addEventListener('click',()=>{game.assisted=!game.assisted;updateAssist();$('court').focus();});
 window.addEventListener('resize',()=>{if(view){view.resize();$('touch-controls').hidden=!playing||!(touch||innerWidth<650);}});
 window.addEventListener('keydown',event=>{
-  if(event.target instanceof HTMLSelectElement || event.target instanceof HTMLInputElement)return;
+  if(isEditing(event.target))return;
   if(event.key==='?'&&!isPaused()){event.preventDefault();showHelp();return;}
   if(event.code==='Escape'||event.code==='KeyP'){if(!isPaused()){event.preventDefault();pause();}return;}
   if(!playing||isPaused())return;

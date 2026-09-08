@@ -1,3 +1,5 @@
+import { isEditing } from '../shared/controls.js';
+function cycleMode(){if(active()&&game.stage!=='jack'){const modes=Array.from($('mode').options,o=>o.value);game.mode=modes[(modes.indexOf(game.mode)+1)%modes.length];sync()}}
 import { PetancaGame, STEP, ranking, clamp } from './simulation.js';
 const $ = id => document.getElementById(id), keys = new Set();
 const dialogs = [$('help-dialog'), $('pause-dialog'), $('result-dialog')];
@@ -48,7 +50,7 @@ function animate(now) {
   frameId = requestAnimationFrame(animate); const dt = Math.min((now - previous) / 1000 || 0, .065); previous = now;
   if (playing && !paused()) {
     if (active()) {
-      const direction = (keys.has('KeyD') ? 1 : 0) - (keys.has('KeyA') ? 1 : 0), length = (keys.has('KeyW') ? 1 : 0) - (keys.has('KeyS') ? 1 : 0);
+      const direction = ((keys.has('KeyD') || keys.has('ArrowRight')) ? 1 : 0) - ((keys.has('KeyA') || keys.has('ArrowLeft')) ? 1 : 0), length = ((keys.has('KeyW') || keys.has('ArrowUp')) ? 1 : 0) - ((keys.has('KeyS') || keys.has('ArrowDown')) ? 1 : 0);
       game.heading = clamp(game.heading + direction * dt * .1, -.4188, .4188);
       game.reach = clamp(game.reach + length * dt * 1.2, game.stage === 'jack' ? 6 : 2, game.stage === 'jack' ? 10 : 13);
     }
@@ -77,15 +79,20 @@ $('reload').onclick = () => location.reload();
 document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => $(b.dataset.close).close());
 dialogs.forEach(d => d.addEventListener('close', () => { clearInput(); lastHud = ''; sync(); }));
 window.addEventListener('keydown', e => {
+  if (e.key === '?' && !paused() && !isEditing(e.target)) { e.preventDefault(); $('help').click(); return; }
   if (e.code === 'KeyP' || e.code === 'Escape') { if (!paused()) { e.preventDefault(); $('pause').click(); } return; }
-  if (!active() || ['INPUT', 'SELECT', 'BUTTON'].includes(e.target.tagName)) return;
-  if (['Space', 'KeyW', 'KeyS', 'KeyA', 'KeyD'].includes(e.code)) { e.preventDefault(); keys.add(e.code); }
+  if (!active() || isEditing(e.target)) return;
+  if (['Space', 'KeyE', 'KeyQ', 'KeyW', 'KeyS', 'KeyA', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) { e.preventDefault(); keys.add(e.code); }
   if (e.code === 'Space' && !e.repeat) launch();
+  if (e.code === 'KeyE' && !e.repeat) cycleMode();
+  if (e.code === 'KeyQ' && !e.repeat && game.stage !== 'jack') { game.mode = 'shoot'; sync(); }
 });
 window.addEventListener('keyup', e => keys.delete(e.code));
 function background() { clearInput(); if (playing && !paused() && game.stage !== 'over') $('pause').click(); }
 window.addEventListener('blur', background); document.addEventListener('visibilitychange', () => { if (document.hidden) background(); });
 window.addEventListener('resize', () => view?.resize());
-$('court').addEventListener('pointerdown', e => { if (!view || !active()) return; e.preventDefault(); const p = view.aimAt(e.clientX, e.clientY); if (p) { game.aimAt(p); sync(); } $('court').focus({ preventScroll: true }); });
+$('court').addEventListener('contextmenu',e=>e.preventDefault());
+$('court').addEventListener('pointermove',e=>{if(view&&active()&&e.pointerType!=='touch'){const p=view.aimAt(e.clientX,e.clientY);if(p){game.aimAt(p);sync()}}});
+$('court').addEventListener('pointerdown', e => { if (!view || !active()) return; e.preventDefault(); const p = view.aimAt(e.clientX, e.clientY); if (p) { game.aimAt(p); sync(); } $('court').focus({ preventScroll: true }); if(e.pointerType!=='touch'){if(e.button===2)cycleMode();else if(e.button===0)launch();} });
 $('court').addEventListener('webglcontextlost', e => { e.preventDefault(); fatal(new Error('WebGL context lost')); });
 try { const { PetancaView } = await import('./render.js'); await document.fonts.ready; view = new PetancaView($('court')); $('start').disabled = false; $('start').textContent = 'ECHAMOS UNA PARTIDA'; requestAnimationFrame(animate); } catch (e) { fatal(e); }

@@ -81,14 +81,15 @@ export class FootballGame {
     if(this.offside.includes(p.id)&&this.lastTouch===p.team){this.stop('offside',1-p.team,{x:p.x,z:p.z});return;}
     if(this.pendingPass){if(this.pendingPass.team===p.team&&this.pendingPass.from!==p.id)this.stats.completed[p.team]++;this.pendingPass=null;}
     this.ball.owner=p.id;this.ball.vx=this.ball.vy=this.ball.vz=0;this.lastTouch=p.team;this.offside=[];
-    p.decision=.5+this.random()*.65;p.cooldown=.35;
+    p.decision=.25+this.random()*.2;p.cooldown=.85;
     if(p.team===0&&!p.keeper&&this.autoSwitch){this.controlled=p.id;this.switchLock=.4;}
     this.emit('possession',{team:p.team,player:p.id});
   }
   tackle(p){
     if(p.cooldown>0)return false;p.cooldown=1.0;p.kick=.25;
     const carrier=this.players[this.ball.owner];
-    if(!carrier||carrier.team===p.team||distance(p,carrier)>2.65)return false;
+    if(!carrier||carrier.team===p.team||carrier.cooldown>0||distance(p,carrier)>2.65)return false;
+    carrier.cooldown=1.4;
     this.gain(p);this.emit('tackle',{team:p.team});return true;
   }
   stop(type,team,position={x:0,z:0}){

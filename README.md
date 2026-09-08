@@ -16,6 +16,10 @@ Visit [ckgrafico.github.io/doodle-games](https://ckgrafico.github.io/doodle-game
 
 We are **super, super, SUPER inspired** by the visual world [Evan Milenko shared here](https://x.com/EvanMilenko/status/2096356126145015885), and by [Doodle District](https://doodleshooter.vercel.app/). All gameplay, code, shaders, models, UI, and course designs in this repository are original fan work. No affiliation or endorsement is implied.
 
+## Standards for future games
+
+Start with [AGENTS.md](AGENTS.md), [MECHANICS.md](MECHANICS.md), and [DESIGN.md](DESIGN.md). Every new-game request includes a review of all existing games and improvements to shared quality. See the [collection review](docs/quality-review.md) for findings and verification limits.
+
 ## Commands
 
 ```sh

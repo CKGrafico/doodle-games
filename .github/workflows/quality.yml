@@ -1,0 +1,16 @@
+name: Collection quality
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  collection:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check every game and shared contract
+        run: node scripts/check.mjs
+      - name: Run all rules, mechanics and regression tests
+        run: node --test tests/*.test.mjs

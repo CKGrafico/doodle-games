@@ -1,0 +1,21 @@
+/* The notebook identity is a collection contract. Import after sport styles. */
+:root {
+  --paper: #f7f4e9;
+  --ink: #2a42ad;
+  --ink-dark: #172867;
+  --red: #c94b59;
+  --hand: Patrick, 'Comic Sans MS', 'Segoe Print', cursive;
+  --sans: 'Trebuchet MS', system-ui, sans-serif;
+}
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 3px solid var(--red);
+  outline-offset: 4px;
+}
+button:disabled { cursor: default; opacity: .5; }
+.callout button, .callout a { pointer-events: auto; }
+dialog button, .small-button, .text-button, nav button { min-height: 44px; }
+.desktop-controls { flex-wrap: wrap; }
+.touch-shots .shot { min-width: 44px; min-height: 44px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
