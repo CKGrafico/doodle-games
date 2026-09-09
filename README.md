@@ -1,6 +1,6 @@
 # Doodle Games
 
-Nine original hand-drawn sports games built with Three.js and no build step:
+Eleven original hand-drawn sports games built with Three.js and no build step:
 
 - `padel/`: doubles padel with glass-wall rebounds, partners, opponents, serves, rallies, and scoring.
 - `football/`: 11 versus 11 football with AI teams, passing, shooting, keepers, restarts, offside, and match time.
@@ -13,6 +13,11 @@ Nine original hand-drawn sports games built with Three.js and no build step:
 - `curling/`: eight stones each, curl, sweeping, collisions, guard protection, hammer and end scoring, AI or local two-player play.
 - `pool/`: 8-ball with solids/stripes, pocket and cushion physics, fouls, ball in hand, called-eight wins, AI or local two-player play.
 - `climbing/`: head-to-head 15 m climbing race with charged reaches, grip, flow, falls, false starts and three opponent levels.
+
+- `surf/`: three-wave arcade heat with cutbacks, pumps, lip airs, energy, balance and best-two scoring.
+- `ski/`: downhill slalom with twenty gates, braking, hops, rocks and timed penalties.
+
+Mobile controls share a stable analogue joystick, drag aiming and larger safe-area controls. See `docs/quality-review.md` for evidence and remaining real-device testing.
 
 ## Play
 

@@ -1,0 +1,14 @@
+@import './precision.css';
+body{overflow:hidden}header{position:relative;z-index:2;background:#f7f4e9ed}
+.ride-arena{position:fixed;inset:66px 0 0}#court{width:100%;height:100%}
+.ride-lobby,.ride-result{position:fixed;left:5vw;top:18dvh;width:330px;max-width:90vw;padding:24px;background:#f7f4e9ef;border:2px solid #2a42ad;z-index:3}
+.ride-lobby h1{font-size:64px}.ride-lobby p{font-size:16px}.ride-hud{position:fixed;top:78px;left:50%;transform:translateX(-50%);width:min(480px,calc(100% - 24px));padding:10px 16px;background:#f7f4e9e8;border:1px solid #2a42ad;pointer-events:none}
+.ride-stats{display:flex;justify-content:space-between;gap:12px;font:26px Patrick,cursive}.ride-hud p{margin:4px 0;font-size:14px}.ride-meters{display:flex;gap:10px;flex-wrap:wrap}.ride-meters label{margin:4px 0;font-size:13px;flex:1}.ride-meters meter{width:100%;height:14px}
+.ride-touch{position:fixed;left:max(18px,env(safe-area-inset-left));right:max(18px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));display:flex;justify-content:space-between;align-items:end;pointer-events:none;z-index:4}
+.ride-touch .joystick{width:112px;height:112px;border:2px solid #2a42ad;border-radius:50%;position:relative;display:flex;align-items:center;justify-content:center;background:#f7f4e9dd;pointer-events:auto;touch-action:none}
+.ride-touch .joystick>div{width:42px;height:42px;border:2px solid #2a42ad;border-radius:50%;background:#2a42ad33}.ride-touch .joystick span{position:absolute;bottom:8px;font-size:12px}
+.ride-actions{display:flex;gap:12px;align-items:end;pointer-events:auto}.ride-actions button{min-height:60px;min-width:80px;touch-action:none;background:#f7f4e9ee}.ride-actions #action{background:#2a42ad;color:white;width:100px}
+#brake[aria-pressed=true]{background:#c94b59;color:white}.ride-instructions{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);max-width:44vw;background:#f7f4e9dd;padding:8px;font-size:14px;text-align:center;pointer-events:none}
+@media(pointer:fine){.ride-touch .joystick{visibility:hidden}}
+@media(max-width:650px){header{height:58px}.ride-arena{top:58px}.ride-hud{top:66px}.ride-lobby,.ride-result{left:5vw;top:23dvh;padding:20px}.ride-lobby h1{font-size:48px}.ride-instructions{display:none}.ride-actions{flex-direction:column;gap:8px}.ride-actions button{min-height:52px}.ride-hud #status{font-size:13px}}
+@media(orientation:landscape) and (max-height:600px){.ride-lobby{top:75px;max-height:calc(100dvh - 85px);overflow:auto}.ride-hud{top:66px;width:340px}.ride-instructions{display:none}.ride-hud #status{display:none}.ride-actions{flex-direction:row}}

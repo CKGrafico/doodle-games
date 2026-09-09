@@ -147,7 +147,7 @@ export class PadelGame {
       const moving=human && (input.moveX || input.moveZ);
       if(moving) {
         const d=Math.hypot(input.moveX,input.moveZ);
-        this.movePlayer(p,{x:p.x+input.moveX/d,z:p.z+input.moveZ/d},input.sprint?8:6.8,dt);
+        this.movePlayer(p,{x:p.x+input.moveX/d,z:p.z+input.moveZ/d},(input.sprint?8:6.8)*Math.min(1,d),dt);
       } else if(!human || this.assisted) {
         const homeX=(p.id%2===0?-2.4:2.4)+clamp(b.x*0.18,-0.5,0.5);
         const homeZ=signOf(p.team)*(p.team===receiving?6.4:3.5);

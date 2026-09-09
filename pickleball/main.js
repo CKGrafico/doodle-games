@@ -1,3 +1,4 @@
+import { installStick } from '../shared/touch.js';
 import { sportsMouse } from '../shared/sports-mouse.js';
 let mouse;
 import { PickleballGame, STEP } from './simulation.js';
@@ -5,14 +6,15 @@ import { movement, isEditing, installLifecycle, ActionQueue, wantsSprint } from 
 const $ = id => document.getElementById(id), keys = new Set(), actions = new ActionQueue();
 const dialogs = [$('help-dialog'), $('pause-dialog'), $('result-dialog')];
 let game = new PickleballGame(), view, playing = false, previous = 0, accumulator = 0, frameId;
-let pointerShot = null, touchShot = null, bufferedShot = null, bufferUntil = 0, moveTouch = { x: 0, z: 0 }, joystickId = null;
+let pointerShot = null, touchShot = null, bufferedShot = null, bufferUntil = 0, moveTouch = { x: 0, z: 0 };
 let sound = false, audio, lastHUD = '', ready = false;
 const paused = () => dialogs.some(d => d.open);
 const active = () => playing && !paused() && game.stage !== 'over';
 function clear() {
+  touchStick?.clear();
   mouse?.cancel();
   keys.clear(); actions.clear(); pointerShot = touchShot = bufferedShot = null; bufferUntil = 0;
-  moveTouch = { x: 0, z: 0 }; joystickId = null; accumulator = 0; $('joystick-thumb').style.transform = '';
+  moveTouch = { x: 0, z: 0 }; accumulator = 0; $('joystick-thumb').style.transform = '';
 }
 function tone(type) {
   if (!sound) return;
@@ -120,16 +122,7 @@ for (const button of document.querySelectorAll('[data-shot]')) {
   for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) button.addEventListener(type, () => { if (touchShot === button.dataset.shot) touchShot = null; });
 }
 $('switch-player').onpointerdown = event => { if (active()) { event.preventDefault(); actions.push('switch'); } };
-function moveStick(event) {
-  if (event.pointerId !== joystickId) return;
-  const rect = $('joystick').getBoundingClientRect(), radius = rect.width * .34;
-  let x = (event.clientX - rect.left - rect.width / 2) / radius, z = (event.clientY - rect.top - rect.height / 2) / radius;
-  const length = Math.max(1, Math.hypot(x, z)); x /= length; z /= length;
-  moveTouch = { x, z }; $('joystick-thumb').style.transform = `translate(${x * radius}px,${z * radius}px)`;
-}
-$('joystick').onpointerdown = event => { if (!active()) return; event.preventDefault(); joystickId = event.pointerId; $('joystick').setPointerCapture(joystickId); moveStick(event); };
-$('joystick').onpointermove = moveStick;
-for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) $('joystick').addEventListener(type, event => { if (event.pointerId === joystickId) { joystickId = null; moveTouch = { x: 0, z: 0 }; $('joystick-thumb').style.transform = ''; } });
+const touchStick = installStick({ element: $('joystick'), thumb: $('joystick-thumb'), active: () => active(), change: value => { moveTouch = value; } });
 window.addEventListener('resize', () => { if (view) { view.resize(); $('touch-controls').hidden = !playing || !(matchMedia('(pointer:coarse)').matches || innerWidth < 650); } });
 installLifecycle({ canvas: $('court'), dialogs, clear, active, pause, fatal });
 mouse=sportsMouse({canvas:$('court'),game:()=>game,active:()=>active()&&['ready','rally'].includes(game.stage),context:g=>g.stage+':'+g.lastHit,racket:true,choices:[['drive','Drive'],['dink','Dink'],['lob','Lob'],['smash','Smash']],secondary:()=>buffer('lob')});

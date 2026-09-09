@@ -100,7 +100,7 @@ export class WaterPoloGame {
       let speed = p.team === 0 ? 3.15 : { casual: 2.45, club: 2.85, pro: 3.15 }[this.difficulty];
       if (human && input.sprint && p.stamina > .05) { speed *= 1.35; p.stamina = Math.max(0, p.stamina - dt * .12); } else p.stamina = Math.min(1, p.stamina + dt * .07);
       if (human && (input.moveX || input.moveZ)) {
-        const n = Math.max(1, Math.hypot(input.moveX, input.moveZ)); this.move(p, { x: p.x + input.moveX / n, z: p.z + input.moveZ / n }, speed, dt);
+        const n = Math.hypot(input.moveX, input.moveZ); this.move(p, { x: p.x + input.moveX / n, z: p.z + input.moveZ / n }, speed * Math.min(1, n), dt);
       } else if (p.keeper) this.move(p, { x: clamp(b.x * .35, -1.15, 1.15), z: -d * 13.65 }, 2.6, dt);
       else if (human && !this.assisted) p.vx = p.vz = 0;
       else {

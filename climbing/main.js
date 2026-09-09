@@ -1,3 +1,4 @@
+import { installTouchAim, observeSurface } from '../shared/touch.js';
 import { isEditing, installLifecycle } from '../shared/controls.js';
 import { installCharge, Charge } from '../shared/charge.js';
 import { ClimbingGame, HOLDS, STEP } from './simulation.js';
@@ -26,7 +27,7 @@ function quit() {
   $('lobby').hidden = false; $('match').hidden = true; $('pause').hidden = true; view.setLobby(true); $('start').focus();
 }
 function aim(event) {
-  if (!view || game.stage !== 'racing' || game.player.moving) return;
+  if (!view || !active() || game.stage !== 'racing' || game.player.moving || keyboardCharge.state || mouse?.charging) return;
   const point = view.aimAt(event.clientX, event.clientY); if (point) game.aimAt(point.y);
 }
 function release(power) {
@@ -65,7 +66,7 @@ $('help').onclick = () => { clear(); $('help-dialog').showModal(); };
 $('pause').onclick = () => { if (active()) { clear(); $('pause-dialog').showModal(); } };
 $('resume').onclick = () => $('pause-dialog').close(); $('reload').onclick = () => location.reload();
 document.querySelectorAll('[data-close]').forEach(button => button.onclick = () => $(button.dataset.close).close());
-$('target').oninput = event => game.select(Number(event.target.value));
+$('target').oninput = event => !keyboardCharge.state && !mouse?.charging && game.select(Number(event.target.value));
 
 window.addEventListener('keydown', event => {
   if (isEditing(event.target)) return;
@@ -73,9 +74,9 @@ window.addEventListener('keydown', event => {
   if (event.key === '?') { $('help').click(); return; }
   if (!active()) return;
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.code)) event.preventDefault();
-  if (event.code === 'Space' && !event.repeat) { keyboardHeld = true; beginCharge(); }
-  if (!event.repeat && game.stage === 'racing' && ['ArrowUp', 'ArrowRight'].includes(event.code)) game.select(Math.min(game.target + 1, HOLDS.length - 1));
-  if (!event.repeat && game.stage === 'racing' && ['ArrowDown', 'ArrowLeft'].includes(event.code)) game.select(Math.max(game.target - 1, game.player.hold + 1));
+  if (event.code === 'Space' && !event.repeat && buttonPointer === null) { keyboardHeld = true; beginCharge(); }
+  if (!event.repeat && !keyboardCharge.state && !mouse?.charging && game.stage === 'racing' && ['ArrowUp', 'ArrowRight'].includes(event.code)) game.select(Math.min(game.target + 1, HOLDS.length - 1));
+  if (!event.repeat && !keyboardCharge.state && !mouse?.charging && game.stage === 'racing' && ['ArrowDown', 'ArrowLeft'].includes(event.code)) game.select(Math.max(game.target - 1, game.player.hold + 1));
 });
 window.addEventListener('keyup', event => {
   if (event.code !== 'Space' || !keyboardHeld) return; keyboardHeld = false;
@@ -83,20 +84,22 @@ window.addEventListener('keyup', event => {
 });
 
 $('move').addEventListener('pointerdown', event => {
-  if (!canMove()) return; event.preventDefault(); buttonPointer = event.pointerId; $('move').setPointerCapture(event.pointerId); beginCharge();
+  if (!canMove() || buttonPointer !== null || keyboardCharge.state) return; event.preventDefault(); buttonPointer = event.pointerId; $('move').setPointerCapture(event.pointerId); beginCharge();
 });
 function endButton(event) {
   if (event.pointerId !== buttonPointer) return; buttonPointer = null;
-  const power = keyboardCharge.release(performance.now(), game.context); if (power !== null) release(power);
+  if (event.type !== 'pointerup') { keyboardCharge.cancel(); shownPower = 0; return; }
+  const power = keyboardCharge.release(performance.now(), canMove() ? game.context : Symbol()); if (power !== null) release(power);
 }
 for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) $('move').addEventListener(type, endButton);
 $('court').addEventListener('pointermove', event => { if (event.pointerType !== 'touch' && !mouse?.charging) aim(event); });
-$('court').addEventListener('pointerdown', event => { if (event.pointerType === 'touch') { event.preventDefault(); aim(event); $('court').focus(); } });
 $('court').addEventListener('pointerdown', () => { if (game.stage === 'countdown') game.falseStartNow(); });
 
 mouse = installCharge({ canvas: $('court'), enabled: canMove, context: () => game.context, aim,
   progress: power => { shownPower = power ?? 0; }, cancelled: () => { shownPower = 0; }, fire: release });
 installLifecycle({ canvas: $('court'), dialogs, clear, active, pause: () => $('pause').click(), fatal });
+installTouchAim({ canvas: $('court'), active: () => canMove() && !keyboardCharge.state && !mouse?.charging, aim });
+observeSurface($('court'), () => view?.resize());
 window.addEventListener('resize', () => view?.resize());
 try {
   const { ClimbingView } = await import('./render.js'); await document.fonts.ready; view = new ClimbingView($('court'));

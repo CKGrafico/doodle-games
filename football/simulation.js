@@ -162,7 +162,7 @@ export class FootballGame {
       if(isCarrier)speed*=.89;
       if(human&&input.sprint&&p.stamina>.06){speed*=1.4;p.stamina=Math.max(0,p.stamina-dt*.12);}else p.stamina=Math.min(1,p.stamina+dt*.07);
       if(human&&(input.moveX||input.moveZ)){
-        const len=Math.hypot(input.moveX,input.moveZ);this.move(p,{x:p.x+input.moveX/len,z:p.z+input.moveZ/len},speed,dt);
+        const len=Math.hypot(input.moveX,input.moveZ);this.move(p,{x:p.x+input.moveX/len,z:p.z+input.moveZ/len},speed*Math.min(1,len),dt);
       }else if(human&&!this.assisted){p.vx=p.vz=0;}
       else{
         let target;

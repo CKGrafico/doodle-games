@@ -106,3 +106,13 @@ Speed climbing uses the same charge lifecycle with sport-specific intent. Point 
 The wall is 15 m with two parallel, identical original routes. Short moves are safer; skipping a hold can save time but requires more charge, consumes more grip and gives less power tolerance. Clean moves build Flow. An invalid reach or imprecise release causes a short auto-belay fall and recovery at the last secured hold. The first climber to hit the top pad wins. AI has casual, club and pro cadence/accuracy levels and uses the same reach rules.
 
 This is an arcade adaptation of the head-to-head format, not the licensed standard route. It omits official brackets, certified wall/hold dimensions, route licensing, equipment checks and detailed timing-system procedure. The simulation must verify false starts, reach/power boundaries, recoverable falls, complete player climbs and complete seeded AI races.
+
+## Touch refinement and continuous rides
+
+All four movement sports now retain joystick magnitude in actual player speed, including padel and football which previously normalized every nonzero input to full speed. The shared stick has a 12% radial dead zone and linear remaining travel. Full travel retains sprint. Pointer ownership survives a second action finger; pause, cancellation, blur and rotation clear it.
+
+Golf, petanca, curling, pool and climbing support single-finger drag aiming without shooting. Climbing locks its target while charging and cancels interrupted MOVE gestures instead of releasing a move. Surface observers update projection when layout changes without a window resize.
+
+Surf is an original three-wave arcade heat: 25 seconds per wave, best two scores count, a moving pocket rewards speed and points, committed cutbacks build Flow, charged pumps build speed, and charged lip airs reward a centred landing. Energy limits repeated actions; hard high-speed turns drain balance and wipeouts reset Flow with recovery. It does not claim official judging or ocean simulation.
+
+Ski is an original 850 m arcade slalom: twenty alternating gates, proportional steering, speed-dependent balance, held braking, charged hops, rock collision, recoverable falls and elapsed time plus penalties. Gate crossing uses interpolated lateral position at the crossing, not just end-of-frame position. Missed gates add three seconds and falls two. This is deliberately forgiving arcade scoring, not official disqualification rules. Both rides run at 120 Hz, share pause/input lifecycle, and have mouse, keyboard and touch alternatives.

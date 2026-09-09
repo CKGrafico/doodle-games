@@ -1,3 +1,4 @@
+import { installStick } from '../shared/touch.js';
 import { sportsMouse } from '../shared/sports-mouse.js';
 let mouse;
 import { TEAM_KEYS, movement, wantsSprint, isEditing } from '../shared/controls.js';
@@ -6,7 +7,7 @@ const $=id=>document.getElementById(id),keys=new Set(),coarse=matchMedia('(point
 let game=new FootballGame(),view,playing=false,previous=0,accumulator=0,action=null,moveTouch={x:0,z:0},sound=false,audio,frame;
 const dialogs=[$('help-dialog'),$('pause-dialog'),$('result-dialog')];const paused=()=>dialogs.some(d=>d.open);
 function tone(type){if(!sound)return;try{audio??=new AudioContext();audio.resume();const o=audio.createOscillator(),g=audio.createGain(),t=audio.currentTime;o.type='triangle';o.frequency.setValueAtTime(type==='goal'?660:type==='kick'?220:420,t);o.frequency.exponentialRampToValueAtTime(type==='goal'?990:100,t+.16);g.gain.setValueAtTime(.06,t);g.gain.exponentialRampToValueAtTime(.0001,t+.2);o.connect(g);g.connect(audio.destination);o.start(t);o.stop(t+.22);}catch{sound=false;}}
-function clear(){mouse?.cancel();keys.clear();action=null;moveTouch={x:0,z:0};$('joystick-thumb').style.transform='';}
+function clear(){touchStick?.clear();mouse?.cancel();keys.clear();action=null;moveTouch={x:0,z:0};$('joystick-thumb').style.transform='';}
 function ui(){document.body.classList.toggle('playing',playing);for(const id of ['lobby','court-note','lobby-footer'])$(id).hidden=playing;for(const id of ['hud','controls','pause','player-label','radar'])$(id).hidden=!playing;$('touch-controls').hidden=!playing||!(coarse||innerWidth<650);$('callout').hidden=!playing;view.setLobby(!playing);}
 function start(){dialogs.forEach(d=>d.close());clear();game=new FootballGame({duration:$('duration').value,formation:$('formation').value,difficulty:$('difficulty').value,assisted:$('assist').checked,seed:Date.now()%2147483647});playing=true;accumulator=0;ui();assist();$('court').tabIndex=0;$('court').focus();tone('kick');}
 function quit(){dialogs.forEach(d=>d.close());clear();playing=false;game=new FootballGame();ui();$('start').focus();}
@@ -37,8 +38,7 @@ window.addEventListener('keydown',e=>{if(isEditing(e.target))return;if(e.code===
 window.addEventListener('blur',()=>{clear();if(playing&&!paused())pause();});document.addEventListener('visibilitychange',()=>{if(document.hidden){clear();if(playing&&!paused())pause();}});window.addEventListener('resize',()=>{if(view){view.resize();$('touch-controls').hidden=!playing||!(coarse||innerWidth<650);}});
 $('court').addEventListener('pointermove',e=>{if(view&&playing&&!paused()&&e.pointerType!=='touch')game.aim=view.aimAt(e.clientX,e.clientY);});$('court').addEventListener('pointerdown',e=>{if(!view||!playing||paused())return;e.preventDefault();$('court').focus();game.aim=view.aimAt(e.clientX,e.clientY);});$('court').addEventListener('contextmenu',e=>e.preventDefault());
 for(const b of document.querySelectorAll('[data-action]'))b.addEventListener('pointerdown',e=>{e.preventDefault();if(playing&&!paused())action=b.dataset.action;});
-let joystickId=null;function stick(e){if(e.pointerId!==joystickId)return;const r=$('joystick').getBoundingClientRect(),radius=r.width*.34;let x=(e.clientX-r.left-r.width/2)/radius,z=(e.clientY-r.top-r.height/2)/radius;const n=Math.max(1,Math.hypot(x,z));x/=n;z/=n;moveTouch={x,z};$('joystick-thumb').style.transform=`translate(${x*radius}px,${z*radius}px)`;}
-$('joystick').addEventListener('pointerdown',e=>{e.preventDefault();joystickId=e.pointerId;$('joystick').setPointerCapture(e.pointerId);stick(e);});$('joystick').addEventListener('pointermove',stick);for(const name of ['pointerup','pointercancel','lostpointercapture'])$('joystick').addEventListener(name,e=>{if(e.pointerId===joystickId){joystickId=null;moveTouch={x:0,z:0};$('joystick-thumb').style.transform='';}});
+const touchStick = installStick({ element: $('joystick'), thumb: $('joystick-thumb'), active: () => playing && !paused(), change: value => { moveTouch = value; } });
 $('court').addEventListener('webglcontextlost',e=>{e.preventDefault();fatal(new Error('WebGL context lost'));});
 mouse=sportsMouse({canvas:$('court'),game:()=>game,active:()=>playing&&!paused()&&game.ball.owner===game.controlled&&['playing','kickoff','restart'].includes(game.stage),context:g=>g.stage+':'+g.ball.owner,choices:[['pass','Pass'],['through','Through'],['loft','Loft'],['shoot','Shoot']],secondary:()=>action='loft'});
 

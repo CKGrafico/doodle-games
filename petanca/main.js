@@ -1,3 +1,4 @@
+import { installTouchAim, observeSurface } from '../shared/touch.js';
 import { sportsMouse } from '../shared/sports-mouse.js';
 let mouse;
 import { isEditing } from '../shared/controls.js';
@@ -92,10 +93,12 @@ window.addEventListener('keydown', e => {
 window.addEventListener('keyup', e => keys.delete(e.code));
 function background() { clearInput(); if (playing && !paused() && game.stage !== 'over') $('pause').click(); }
 window.addEventListener('blur', background); document.addEventListener('visibilitychange', () => { if (document.hidden) background(); });
+installTouchAim({ canvas: $('court'), active: () => active() && !mouse?.charging, aim: event => { if (!view) return; const point = view.aimAt(event.clientX, event.clientY); if (point) { game.aimAt(point); sync(); } } });
+observeSurface($('court'), () => view?.resize());
 window.addEventListener('resize', () => view?.resize());
 $('court').addEventListener('contextmenu',e=>e.preventDefault());
 $('court').addEventListener('pointermove',e=>{if(!mouse?.charging&&view&&active()&&e.pointerType!=='touch'){const p=view.aimAt(e.clientX,e.clientY);if(p){game.aimAt(p);sync()}}});
-$('court').addEventListener('pointerdown', e => { if (mouse?.charging || !view || !active()) return; e.preventDefault(); const p = view.aimAt(e.clientX, e.clientY); if (p) { game.aimAt(p); sync(); } $('court').focus({ preventScroll: true });  });
+$('court').addEventListener('pointerdown', e => { if (e.pointerType === 'touch' || mouse?.charging || !view || !active()) return; e.preventDefault(); const p = view.aimAt(e.clientX, e.clientY); if (p) { game.aimAt(p); sync(); } $('court').focus({ preventScroll: true });  });
 $('court').addEventListener('webglcontextlost', e => { e.preventDefault(); fatal(new Error('WebGL context lost')); });
 mouse=sportsMouse({locale:'es',canvas:$('court'),game:()=>game,active,context:g=>g.endNumber+':'+g.stage+':'+g.turn+':'+g.remaining.join(',')+':'+g.mode,lockAim:true,secondary:cycleMode,previewPower:p=>game.reach=game.stage==='jack'?6+p*4:2+p*11,restorePower:()=>{const g=game,p=g.reach;return()=>g.reach=p},fire:p=>{game.reach=game.stage==='jack'?6+p*4:2+p*11;launch()}});
 

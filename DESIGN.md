@@ -67,3 +67,9 @@ Curling and pool reuse a shared precision layout: notebook sidebar, turn/score s
 Every charged shot has visible progress and cancellation instructions. The originals use a compact mouse strip; new precision games incorporate the meter into the shot panel. Respect the same interaction semantics, even where the layout differs. Menus, background tabs and restarts cancel gestures and input. New shared UI and new game assets must be reviewed alongside the existing collection for every future addition.
 
 Climbing race uses a tall, near-frontal composition derived from the user's supplied outdoor competition reference: two full-height parallel lanes, large red/blue holds, start pads, finish buzzers, ropes, two animated climbers and restrained event scaffolding. The player target ring and grip/power feedback must remain readable while the camera follows upward. The homepage preview uses this actual scene, not a flat wall icon.
+
+## Mobile controls and the riding games
+
+Keep the notebook paper, blue/red ink, real 3D menu previews and character silhouettes. Mobile movement controls use larger separated targets, safe-area padding and a stable joystick. Precision games dedicate a bounded viewport to the field and let the detail panel scroll separately; primary launch/move actions stay accessible at the bottom. Golf uses a compact lower shot panel. Small landscape touch screens hide redundant keyboard legends and reduce HUD size.
+
+Surf shows an animated ink wave face, board, standing rider, marked boundaries and a visible moving pocket. Ski shows an inclined snow course, paired red/blue gate flags, trees, rocks, skis and poles. Their following cameras use time-based damping and pull farther back in portrait. Their HUD exposes energy, balance, charge and score while keeping movement controls at the lower corners. Actual mobile appearance remains to be verified in a compatible browser; source inspection does not prove framing.

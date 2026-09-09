@@ -124,7 +124,7 @@ export class PickleballGame {
       p.cooldown = Math.max(0, p.cooldown - dt); p.swing = Math.max(0, p.swing - dt);
       const human = p.id === this.controlled && !input.autoplay;
       if (human && (input.moveX || input.moveZ)) {
-        const n = Math.max(1, Math.hypot(input.moveX, input.moveZ)); this.move(p, { x: p.x + input.moveX / n, z: p.z + input.moveZ / n }, input.sprint ? 6.8 : 5.4, dt);
+        const n = Math.hypot(input.moveX, input.moveZ); this.move(p, { x: p.x + input.moveX / n, z: p.z + input.moveZ / n }, (input.sprint ? 6.8 : 5.4) * Math.min(1, n), dt);
       } else if (!human || this.assisted) {
         const waitForBounce = this.rally.mustBounce[p.team];
         let target = { x: (p.id === this.score.right[p.team] ? 1 : -1) * signOf(p.team) * 1.55, z: signOf(p.team) * (waitForBounce ? 5.9 : 3.0) };

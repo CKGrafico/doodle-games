@@ -81,3 +81,23 @@ Reviewed all eight existing games before adding climbing race, including control
 The homepage registers the climbing renderer and uses the same lazy one-frame scene capture as every other card. The preview contains the actual wall, holds, two climbers, ropes, pads and event structure. Root standards, README, control contract, help and sport research were updated so future additions must also review climbing.
 
 Validation passed with `node scripts/check.mjs` and all 81 tests in the complete `node --test tests/*.test.mjs` suite. No browser visual or interactive playtest was performed. Camera framing, hold selection comfort, mobile button ergonomics and difficulty feel remain subjective and need hands-on assessment; seeded completion proves progression, not balance or enjoyment.
+
+## 2026-09-09: collection touch review, surf and ski
+
+| Game | Improvement / review result |
+| --- | --- |
+| Padel | Shared one-pointer joystick, proportional physical speed, larger touch targets, safe areas. Existing wall and match rules retained. |
+| Football | Shared joystick and proportional speed; preserves the full 22-player match, passing, restarts and offside. |
+| Golf | Drag-to-aim, surface size observation, compact lower mobile shot panel and larger input targets. |
+| Water polo | Shared joystick and proportional speed, safe-area controls, existing possession and keeper rules retained. |
+| Petanca | Drag-to-aim, surface size observation, bounded scrollable detail panel and reachable launch button. |
+| Pickleball | Shared joystick and proportional speed preserve its acceleration and kitchen momentum rules. |
+| Curling | Drag-to-aim, corrected start-time resize order, surface observer, field and controls fit a bounded mobile viewport. Sweeping retained. |
+| Pool | Same precision improvements; drag supports ball placement and aiming without firing. Existing full-rack rules retained. |
+| Climbing | Fixed cancellation incorrectly firing a MOVE; blocked target changes during charge, added touch dragging and surface observer. |
+| Surf | Added three-wave heat, best-two scoring, pocket, cutbacks, pumps, lip airs, balance, energy and recoverable wipeouts. |
+| Ski | Added twenty-gate downhill course, brakes, charged hops, collision, penalties and completed-run timing. |
+
+Reviewed control implementations and physical movement across the existing collection. Added tests for actual analogue player speeds, dead-zone and diagonal limits, multi-finger ownership, surf heat scoring and air recovery, and full ski progression through all twenty gates. Shared input changes preserve the existing mouse charge contract. The menu registers both new renderers for bounded scene previews.
+
+Validation: source checks and all 89 tests pass. Browser interaction and screenshots were not performed: the Sites environment has no compatible supervised preview for this plain static project. Touch ergonomics, camera framing and subjective difficulty need real-device testing. No claim of a browser playtest is made.

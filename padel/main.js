@@ -1,3 +1,4 @@
+import { installStick } from '../shared/touch.js';
 import { sportsMouse } from '../shared/sports-mouse.js';
 let mouse;
 import { movement, isEditing, ActionQueue, wantsSprint } from '../shared/controls.js';
@@ -26,7 +27,7 @@ function beep(kind) {
   }catch{soundOn=false;$('sound').textContent='Sound unavailable';$('sound').setAttribute('aria-pressed','false');}
 }
 
-function clearInput(){mouse?.cancel();switches.clear();keys.clear();pointerShot=null;touchShot=null;moveTouch={x:0,z:0};$('joystick-thumb').style.transform='';}
+function clearInput(){touchStick?.clear();mouse?.cancel();switches.clear();keys.clear();pointerShot=null;touchShot=null;moveTouch={x:0,z:0};$('joystick-thumb').style.transform='';}
 function applyPlayingUI() {
   document.body.classList.toggle('playing',playing);
   for(const id of ['lobby','court-note','lobby-footer'])$(id).hidden=playing;
@@ -143,17 +144,7 @@ for(const button of document.querySelectorAll('[data-shot]')){
   button.addEventListener('pointerup',release);button.addEventListener('pointercancel',release);button.addEventListener('lostpointercapture',release);
 }
 $('switch-player').addEventListener('pointerdown',event=>{if(playing&&!isPaused()){event.preventDefault();switches.push('switch');}});
-let joystickId=null;
-function joystickMove(event){
-  if(event.pointerId!==joystickId)return;
-  const rect=$('joystick').getBoundingClientRect(),radius=rect.width*.34;
-  let x=(event.clientX-rect.left-rect.width/2)/radius,z=(event.clientY-rect.top-rect.height/2)/radius;
-  const mag=Math.max(1,Math.hypot(x,z));x/=mag;z/=mag;
-  moveTouch={x,z};$('joystick-thumb').style.transform=`translate(${x*radius}px,${z*radius}px)`;
-}
-$('joystick').addEventListener('pointerdown',event=>{event.preventDefault();joystickId=event.pointerId;$('joystick').setPointerCapture(event.pointerId);joystickMove(event);});
-$('joystick').addEventListener('pointermove',joystickMove);
-for(const name of ['pointerup','pointercancel','lostpointercapture'])$('joystick').addEventListener(name,event=>{if(event.pointerId===joystickId){joystickId=null;moveTouch={x:0,z:0};$('joystick-thumb').style.transform='';}});
+const touchStick = installStick({ element: $('joystick'), thumb: $('joystick-thumb'), active: () => playing && !isPaused(), change: value => { moveTouch = value; } });
 $('court').addEventListener('webglcontextlost',event=>{event.preventDefault();fatal(new Error('WebGL context lost'));});
 
 mouse=sportsMouse({canvas:$('court'),game:()=>game,active:()=>playing&&!isPaused()&&['ready','rally'].includes(game.stage),context:g=>g.stage+':'+g.lastHitTime,racket:true,choices:[['drive','Drive'],['lob','Lob'],['smash','Smash']],secondary:()=>{pointerShot='lob';setTimeout(()=>pointerShot=null,160)}});

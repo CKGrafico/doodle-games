@@ -1,3 +1,4 @@
+import { installTouchAim, observeSurface } from './touch.js';
 import { isEditing, installLifecycle } from './controls.js';
 import { installCharge } from './charge.js';
 const $ = id => document.getElementById(id);
@@ -32,7 +33,7 @@ export async function boot({ create, loadView, kind }) {
   }
   function start() {
     clear(); dialogs.forEach(d => d.close()); game = create({ local: $('opponent').value === 'local', ends: Number($('length').value), seed: Date.now() });
-    playing = true; view.close = false; view.resize(); sync(); $('court').focus();
+    playing = true; view.close = false; sync(); view.resize(); $('court').focus();
   }
   function aim(e) { if (!view) return; const p = view.aimAt(e.clientX, e.clientY); if (!p) return;
     if (canAim() && !mouse?.charging) game.aimAt(p);
@@ -83,7 +84,7 @@ export async function boot({ create, loadView, kind }) {
   });
   window.addEventListener('keyup', e => keys.delete(e.code));
   $('court').addEventListener('pointermove', e => { if (e.pointerType !== 'touch') aim(e); });
-  $('court').addEventListener('pointerdown', e => { if (e.pointerType === 'touch' || game.stage === 'place') { aim(e); $('court').focus(); } });
+  $('court').addEventListener('pointerdown', e => { if (e.pointerType !== 'touch' && game.stage === 'place') { aim(e); $('court').focus({ preventScroll: true }); } });
   $('court').addEventListener('wheel', e => { if (canAim() && !mouse.charging) { e.preventDefault(); game.power = Math.max(.05, Math.min(1, game.power - Math.sign(e.deltaY) * .02)); } }, { passive: false });
   let beforePower;
   mouse = installCharge({ canvas: $('court'), enabled: canAim, context: () => game.context, aim, secondary,
@@ -91,6 +92,8 @@ export async function boot({ create, loadView, kind }) {
     cancelled: () => { if (beforePower !== undefined) game.power = beforePower; },
     fire: power => { game.shoot(power); sync(); } });
   installLifecycle({ canvas: $('court'), dialogs, clear, active, pause: () => $('pause').click(), fatal });
-  window.addEventListener('resize', () => view?.resize());
+  installTouchAim({ canvas: $('court'), active: () => canAim() || (active() && game.human && game.stage === 'place'), aim });
+observeSurface($('court'), () => view?.resize());
+window.addEventListener('resize', () => view?.resize());
   try { const View = await loadView(); await document.fonts.ready; view = new View($('court')); $('start').disabled = false; sync(); frame = requestAnimationFrame(loop); } catch (error) { fatal(error); }
 }

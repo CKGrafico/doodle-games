@@ -12,7 +12,7 @@ export class Charge {
 }
 
 // Pointer capture also handles releasing outside the canvas. Touch still taps to aim.
-export function installCharge({ canvas, enabled, context, aim, fire, secondary = () => {}, progress = () => {}, cancelled = () => {}, cancelKey = () => true }) {
+export function installCharge({ canvas, enabled, context, aim, fire, secondary = () => {}, progress = () => {}, cancelled = () => {}, cancelKey = () => true, allowTouch = false }) {
   const charge = new Charge(); let pointer = null;
   const cancel = () => {
     const was = !!charge.state; charge.cancel();
@@ -25,7 +25,7 @@ export function installCharge({ canvas, enabled, context, aim, fire, secondary =
     if (charge.state) progress(charge.power(now));
   };
   canvas.addEventListener('pointerdown', e => {
-    if (e.pointerType === 'touch' || !enabled()) return;
+    if ((e.pointerType === 'touch' && !allowTouch) || !enabled()) return;
     if (e.button === 2) { e.preventDefault(); if (charge.state) cancel(); else secondary(); return; }
     if (e.button !== 0 || charge.state) return;
     e.preventDefault(); canvas.focus({ preventScroll: true }); aim?.(e);

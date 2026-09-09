@@ -16,6 +16,50 @@ button:disabled { cursor: default; opacity: .5; }
 dialog button, .small-button, .text-button, nav button { min-height: 44px; }
 .desktop-controls { flex-wrap: wrap; }
 .touch-shots .shot { min-width: 44px; min-height: 44px; }
+.joystick, .touch-shots, #move, #sweep { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+input[type=range] { min-height: 44px; touch-action: pan-y; }
+dialog { overscroll-behavior: contain; }
+@media (pointer:coarse), (max-width:650px) {
+  select, input, .small-button, .text-button { font-size: 16px; }
+  .desktop-controls { display: none; }
+  .touch-controls { left: max(14px,env(safe-area-inset-left)); right: max(14px,env(safe-area-inset-right)); bottom: max(14px,env(safe-area-inset-bottom)); z-index: 6; }
+  .joystick { width: 112px; height: 112px; flex-shrink: 0; }
+  .touch-shots { gap: 10px; }
+  .touch-shots .shot { min-width: 54px; min-height: 54px; }
+  .playing .controls { bottom: calc(146px + env(safe-area-inset-bottom)); }
+  .control-actions { gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .masthead { padding-top: max(10px,env(safe-area-inset-top)); }
+  .playing .shot-panel { bottom: max(12px,env(safe-area-inset-bottom)); right: 12px; left: 12px; width: auto; transform: none; grid-template-columns: 1fr 1fr; gap: 6px 14px; padding: 10px 14px; }
+  .playing .shot-panel .distance, .playing .shot-panel>p { display: none; }
+  .playing .shot-panel label { font-size: 14px; }
+  .playing .shot-panel .primary { min-height: 48px; }
+  .playing:has(.shot-panel) .controls { bottom: 175px; }
+  .playing:has(.shot-panel) .golf-hud { max-width: calc(100vw - 24px); }
+}
+@media (pointer:coarse) and (orientation:landscape) and (max-height:600px) {
+  .playing .hud { top: max(8px,env(safe-area-inset-top)); }
+  .playing .scoreboard { min-width: 260px; padding: 4px 8px; }
+  .playing .score-team b { font-size: 28px; }
+  .playing .score-team { min-width: 68px; }
+  .playing .controls { bottom: 12px; max-width: 42vw; }
+  .playing .wordmark { display: none; }
+  .playing .callout { top: 32%; }
+  .playing .shot-panel { left: auto; width: 230px; grid-template-columns: 1fr; }
+  .playing:has(.shot-panel) .controls { left: 12px; bottom: 12px; transform: none; }
+}
+@media (max-width:760px) {
+  body.playing:has(main .surface) { overflow: hidden; }
+  .playing main:has(.surface) { height: calc(100dvh - 58px); min-height: 0; grid-template-rows: minmax(0,1fr) minmax(200px,40dvh); }
+  .playing main:has(.surface) aside { min-height: 0; overflow-y: auto; padding: 10px 16px 76px; overscroll-behavior: contain; }
+  .playing main:has(.surface) aside>h1, .playing main:has(.surface) aside>.eyebrow { display: none; }
+  .playing #hit, .playing #move, .playing #throw { touch-action: manipulation; }
+  .playing main:has(.surface) #hit, .playing #move, .playing .panel #throw { position: fixed; right: 16px; bottom: max(10px,env(safe-area-inset-bottom)); width: min(220px,55vw); min-height: 48px; margin: 0; z-index: 7; box-shadow: 0 0 0 6px var(--paper); }
+  .playing #move { touch-action: none; }
+  .playing .panel { max-height: calc(58dvh - 62px); overflow-y: auto; padding-bottom: 80px; }
+  .playing main:has(.surface) .notice, .playing main:has(.surface) .help-hint { margin: 6px 0; }
+  .playing .countdown { font-size: 28px; margin: 4px 0; }
+  .playing .route-status { margin: 6px 0; }
+}
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
