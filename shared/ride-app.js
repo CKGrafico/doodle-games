@@ -14,7 +14,7 @@ export async function bootRide({ Game, View, installLifecycle }) {
   const dialogs = [$('help-dialog'), $('pause-dialog')];
   const active = () => game.stage === 'riding' && !dialogs.some(d => d.open);
   const canAct = () => active() && game.canAct;
-  const storageKey = () => 'doodle-rides-v2:' + game.kind + ':' + game.course;
+  const storageKey = () => (game.kind === 'surf' ? 'doodle-surf-v3:' : 'doodle-rides-v2:') + game.kind + ':' + game.course;
   function loadBest() {
     try { best = Number(localStorage.getItem(storageKey())) || null; } catch { best = null; }
   }
@@ -77,6 +77,17 @@ export async function bootRide({ Game, View, installLifecycle }) {
       : (game.streak ? 'CLEAN LINE ×' + game.streak : 'Clean gates = more boost');
     $('combo-time').value = surf ? game.comboTime / 5 : game.energy;
     $('status').textContent = game.air ? 'Steer to spin · centre to land · hold GRAB' : game.message;
+    if (surf) {
+      $('special-meter').value = game.specialTime ? game.specialTime / 8 : game.special;
+      $('special').disabled = game.special < 1 || !!game.specialTime || !active();
+      $('special').textContent = game.specialTime ? 'SPECIAL ×2' : 'SPECIAL · E';
+      $('balance-panel').hidden = !game.inTube;
+      $('balance').value = game.balance;
+      $('tube-value').textContent = game.tubeTime.toFixed(1) + ' s · exit to score';
+      $('shoulder').value = (game.shoulder + 8) / 36;
+      $('feature').textContent = game.inTube ? 'BARREL · small counter-steers to balance · exit left' : game.shoulder < 3 ? 'CURL CLOSE! Centre steering or hold W to escape' : featureText();
+      if (game.practice) $('detail').textContent = game.config.name + ' · FREE SURF';
+    }
     $('action').textContent = game.actionLabel;
     // Keep captured buttons enabled until release; disabling would drop the gesture.
     $('action').disabled = !canAct() && !button?.charging;
@@ -102,15 +113,15 @@ export async function bootRide({ Game, View, installLifecycle }) {
     }
   }
   function start() {
-    clear(); dialogs.forEach(d => d.close()); game = new Game({ course: Number($('course').value) });
+    clear(); dialogs.forEach(d => d.close()); game = new Game({ course: Number($('course').value), practice: $('session')?.value === 'free' });
     loadBest(); game.start(); sync(); view?.resize(); $('court').focus({ preventScroll: true });
   }
   function input() {
     let steer = 0;
     if (mode === 'keyboard') steer = Number(keys.has('ArrowRight') || keys.has('KeyD')) - Number(keys.has('ArrowLeft') || keys.has('KeyA'));
     else if (mode === 'touch') steer = stickValue;
-    else steer = game.air ? pointerTurn : clamp((pointerLane - game.x) * .9 - game.vx * .13, -1, 1);
-    return { steer, brake: braking || keys.has('ArrowDown') || keys.has('KeyS') };
+    else steer = game.air || game.kind === 'surf' ? pointerTurn : clamp((pointerLane - game.x) * .9 - game.vx * .13, -1, 1);
+    return { steer, trim: keys.has('KeyW') || keys.has('ArrowUp'), brake: braking || keys.has('ArrowDown') || keys.has('KeyS') };
   }
   function loop(now) {
     frame = requestAnimationFrame(loop);
@@ -130,13 +141,13 @@ export async function bootRide({ Game, View, installLifecycle }) {
     if (now > flashUntil) $('feedback').hidden = true;
     if (now >= nextHud) { sync(); nextHud = now + 80; }
     // Charge responds every frame; the less urgent HUD updates at 12.5 Hz.
-    $('power').value = power; view.render(game, dt, now / 1000);
+    $('power').value = power; game.crouch = power; view.render(game, dt, now / 1000);
   }
   const fire = value => { if (canAct()) game.action(value); power = 0; $('court').focus({ preventScroll: true }); };
   const chargeOptions = {
     enabled: canAct, context: () => game.context, fire,
     progress: value => { if (value !== null) power = value; }, cancelled: () => { power = 0; },
-    cancelKey: event => !['ArrowLeft', 'ArrowRight', 'ArrowDown', 'KeyA', 'KeyD', 'KeyS'].includes(event.code),
+    cancelKey: event => !['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp', 'KeyA', 'KeyD', 'KeyS', 'KeyW'].includes(event.code),
     allowConcurrent: event => !!event.target.closest?.('#joystick, #brake'),
   };
   mouse = installCharge({ canvas: $('court'), ...chargeOptions });
@@ -149,6 +160,7 @@ export async function bootRide({ Game, View, installLifecycle }) {
     pointerTurn = clamp((event.clientX - rect.left - rect.width / 2) / (rect.width * .32), -1, 1);
   });
   $('court').addEventListener('pointerleave', () => { if (mode === 'mouse') { pointerTurn = 0; pointerLane = game.x; } });
+  if ($('special')) $('special').onclick = () => { if (active()) game.activateSpecial(); };
   $('brake').addEventListener('pointerdown', event => {
     if (!active() || brakePointer !== null) return;
     event.preventDefault(); brakePointer = event.pointerId; braking = true; $('brake').setPointerCapture(brakePointer);
@@ -163,9 +175,10 @@ export async function bootRide({ Game, View, installLifecycle }) {
     }
     if (event.key === '?') { $('help').click(); return; }
     if (!active()) return;
-    if (['ArrowLeft', 'ArrowRight', 'ArrowDown', 'Space'].includes(event.code)) event.preventDefault();
-    if (['ArrowLeft', 'ArrowRight', 'ArrowDown', 'KeyA', 'KeyD', 'KeyS'].includes(event.code)) mode = 'keyboard';
+    if (['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp', 'Space'].includes(event.code)) event.preventDefault();
+    if (['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp', 'KeyA', 'KeyD', 'KeyS', 'KeyW'].includes(event.code)) mode = 'keyboard';
     keys.add(event.code);
+    if (game.kind === 'surf' && event.code === 'KeyE' && !event.repeat) game.activateSpecial();
     if (event.code === 'Space' && !event.repeat && canAct()) { mouse.cancel(); button.cancel(); keyboard.begin(performance.now(), game.context); }
   });
   window.addEventListener('keyup', event => {

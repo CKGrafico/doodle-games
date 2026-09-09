@@ -17,10 +17,34 @@ test('surf idle play earns nothing while deliberate cutbacks complete a scored t
   assert.ok(g.stats.cutbacks>=3&&g.total>1000);
   assert.equal(g.total,[...g.scores].sort((a,b)=>b-a).slice(0,2).reduce((a,b)=>a+b));
 });
-test('a barrel requires sustained placement and can only score once per section',()=>{
+test('a barrel scores only on a safe sustained exit and only once per section',()=>{
   const g=new SurfGame();g.start();const tube=g.sections[0];g.z=tube.z+.1;g.x=tube.x;g.vx=0;
-  stepFor(g,.8);assert.equal(g.stats.tubes,0);stepFor(g,.6);assert.equal(g.stats.tubes,1);
-  assert.ok(g.comboValue>=320);stepFor(g,2);assert.equal(g.stats.tubes,1);
+  stepFor(g,.8);assert.equal(g.stats.tubes,0);stepFor(g,.6);assert.equal(g.stats.tubes,0);
+  assert.ok(g.inTube && g.tubePoints > 150);
+  for(let i=0;i<120&&g.inTube;i++)g.step(1/120,{steer:-.5});
+  assert.equal(g.stats.tubes,1);assert.ok(g.comboValue>=320);assert.ok(tube.done);
+  g.z=tube.z+1;g.x=tube.x;g.vx=0;g.heading=0;stepFor(g,1.5);assert.equal(g.stats.tubes,1);
+});
+test('surf carving carries momentum, descending gains speed and trimming outruns the curl',()=>{
+  const down=new SurfGame(),up=new SurfGame();down.start();up.start();
+  down.x=up.x=0;stepFor(down,.5,{steer:-.6});stepFor(up,.5,{steer:.6});
+  assert.ok(down.speed>up.speed);assert.ok(down.heading<0&&down.vx<0);
+  const heading=down.heading;down.step(1/120,{steer:1});assert.ok(down.heading<0&&down.heading>heading);
+  const g=new SurfGame();g.start();g.shoulder=0;g.speed=14;stepFor(g,2,{trim:true});assert.ok(g.shoulder>0&&g.falls===0);
+  g.shoulder=-7.99;g.speed=5;g.step(.1);assert.equal(g.falls,1);stepFor(g,1.3);assert.equal(g.recovery,0);
+});
+test('tube overbalance loses unbanked points, Special needs earned meter and expires',()=>{
+  const g=new SurfGame();g.start();assert.equal(g.activateSpecial(),false);
+  for(let i=0;i<7;i++)g.trick('Move '+i,100,'move'+i);
+  assert.equal(g.activateSpecial(),true);const before=g.comboValue;g.trick('Air',100,'air');assert.ok(g.comboValue-before>200);
+  g.bank();const banked=g.score;g.trick('Risk',100);g.z=g.sections[0].z+1;g.x=g.sections[0].x;g.balance=1.01;g.step(1/120);
+  assert.equal(g.falls,1);assert.equal(g.comboValue,0);assert.equal(g.score,banked);assert.equal(g.specialTime,0);
+  const timed=new SurfGame();timed.start();timed.special=1;timed.activateSpecial();stepFor(timed,8.1);assert.equal(timed.specialTime,0);
+});
+test('free surf continues past three waves without a blocking heat result',()=>{
+  const g=new SurfGame({practice:true});g.start();
+  for(let i=0;i<4;i++){g.trick('Cutback',100);g.nextWave();assert.equal(g.stage,'riding');}
+  assert.equal(g.wave,5);assert.equal(g.scores.length,4);assert.ok(g.total>0);
 });
 test('variety raises combo value; a fall loses pending points but preserves banked score',()=>{
   const g=new SurfGame();g.start();g.trick('Cutback',100,'cutback');g.bank();assert.equal(g.score,100);

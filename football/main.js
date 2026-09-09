@@ -43,4 +43,4 @@ const touchStick = installStick({ element: $('joystick'), thumb: $('joystick-thu
 $('court').addEventListener('webglcontextlost',e=>{e.preventDefault();fatal(new Error('WebGL context lost'));});
 mouse=sportsMouse({canvas:$('court'),game:()=>game,active:()=>playing&&!paused()&&game.ball.owner===game.controlled&&['playing','kickoff','restart'].includes(game.stage),context:g=>g.stage+':'+g.ball.owner,choices:[['pass','Pass'],['through','Through'],['loft','Loft'],['shoot','Shoot']],secondary:()=>action='loft'});
 
-try{const {FootballView}=await import('./render.js');await document.fonts.ready;view=new FootballView($('court')); installViews(view, 'football', clear);requestAnimationFrame(animate);}catch(e){fatal(e);}
+try{const {FootballView}=await import('./render.js');await document.fonts.ready;view=new FootballView($('court')); installViews(view, 'football', clear, { active: () => playing && !paused() && game.stage !== 'over' });requestAnimationFrame(animate);}catch(e){fatal(e);}

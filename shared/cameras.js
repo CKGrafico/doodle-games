@@ -1,4 +1,5 @@
 import * as THREE from '../vendor/three.module.min.js';
+import { installFirstPerson } from './first-person.js';
 
 export const CAMERA_MODES = ['third', 'top', 'first'];
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -7,7 +8,10 @@ const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 export function cameraFrame(kind, game, view = {}) {
   const p = game.players?.[game.controlled] ?? { x: 0, z: 0, team: 0 };
   const frame = { focus: [0, 0, 0], width: 14, depth: 25, eye: [p.x, 1.65, p.z], look: [p.x, .8, p.z - 12] };
-  if (kind === 'padel' || kind === 'pickleball') {
+  if (kind === 'sheep') {
+    frame.width = 34; frame.depth = 44;
+    frame.eye = [p.x, .95, p.z]; frame.look = [p.x, .5, p.z - 12];
+  } else if (kind === 'padel' || kind === 'pickleball') {
     const direction = p.team === 0 ? -1 : 1;
     frame.width = kind === 'padel' ? 13 : 11; frame.depth = kind === 'padel' ? 24 : 20;
     frame.look = [p.x, .7, p.z + direction * 12];
@@ -47,6 +51,7 @@ export function cameraFrame(kind, game, view = {}) {
     frame.focus = [0, kind === 'ski' ? -2 : 1, -13]; frame.width = 20; frame.depth = 47;
     frame.eye = [game.x, base + jump + 1.65, .12];
     frame.look = [game.x, kind === 'ski' ? -1.7 : base + .5, -18];
+    if (kind === 'surf') frame.look = [game.x + Math.sin(game.heading || 0) * 12, base + .5, -Math.cos(game.heading || 0) * 18];
   }
   return frame;
 }
@@ -59,11 +64,11 @@ function playerObject(view, kind, game) {
   return model?.root ?? model;
 }
 
-export function installViews(view, kind, clearInput = () => {}) {
+export function installViews(view, kind, clearInput = () => {}, input = null) {
   const baseCamera = view.camera;
   const top = new THREE.OrthographicCamera(-10, 10, 10, -10, .05, 1600);
   const first = new THREE.PerspectiveCamera(82, 1, .045, 1600);
-  let mode = 'third', currentGame, frame = null;
+  let mode = 'third', currentGame, frame = null, mouseLook = null;
   try { const saved = localStorage.getItem('doodle-camera:' + kind); if (CAMERA_MODES.includes(saved)) mode = saved; } catch { /* Storage is optional. */ }
   const renderScene = view.renderer.render.bind(view.renderer), renderGame = view.render.bind(view), resize = view.resize.bind(view);
   function apply(cameraMode) {
@@ -78,6 +83,7 @@ export function installViews(view, kind, clearInput = () => {}) {
       top.lookAt(...frame.focus); top.updateProjectionMatrix(); top.updateMatrixWorld(); view.camera = top; return top;
     }
     first.aspect = aspect; first.up.set(0, 1, 0); first.position.set(...frame.eye); first.lookAt(...frame.look);
+    mouseLook?.orient(first);
     first.updateProjectionMatrix(); first.updateMatrixWorld(); view.camera = first; return first;
   }
   // The original renderers keep their own framing. The final camera is shared by
@@ -92,8 +98,9 @@ export function installViews(view, kind, clearInput = () => {}) {
     try { renderScene(scene, chosen); } finally { if (model) model.visible = wasVisible; }
   };
   view.render = (...args) => {
+    if (currentGame && currentGame !== args[0]) mouseLook?.reset();
     currentGame = args[0]; view.camera = baseCamera;
-    try { return renderGame(...args); } finally { apply(mode); }
+    try { return renderGame(...args); } finally { apply(mode); mouseLook?.update(currentGame); }
   };
   view.resize = (...args) => {
     view.camera = baseCamera;
@@ -112,11 +119,12 @@ export function installViews(view, kind, clearInput = () => {}) {
   parent?.append(label);
   function setMode(value) {
     if (!CAMERA_MODES.includes(value)) return;
-    clearInput(); mode = value; select.value = value; apply(mode);
+    clearInput(); mouseLook?.reset(); mode = value; select.value = value; apply(mode);
     try { localStorage.setItem('doodle-camera:' + kind, mode); } catch { /* Storage is optional. */ }
     view.canvas.focus({ preventScroll: true });
   }
   select.addEventListener('change', () => setMode(select.value));
-  view.views = { setMode, get mode() { return mode; } };
+  view.views = { setMode, get mode() { return mode; }, get game() { return currentGame; } };
+  if (input) mouseLook = installFirstPerson(view, kind, input, () => apply(mode), clearInput);
   return view.views;
 }

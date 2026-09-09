@@ -14,12 +14,13 @@ import { PoolGame } from '../pool/simulation.js';
 import { ClimbingGame } from '../climbing/simulation.js';
 import { SurfGame } from '../surf/simulation.js';
 import { SkiGame } from '../ski/simulation.js';
+import { SheepGame } from '../sheep/simulation.js';
 
 const games = { padel: PadelGame, football: FootballGame, waterpolo: WaterPoloGame,
   golf: GolfGame, petanca: PetancaGame, pickleball: PickleballGame, curling: CurlingGame,
-  pool: PoolGame, climbing: ClimbingGame, surf: SurfGame, ski: SkiGame };
+  pool: PoolGame, climbing: ClimbingGame, surf: SurfGame, ski: SkiGame, sheep: SheepGame };
 
-test('all eleven sports provide distinct finite player-eye and overhead poses', () => {
+test('all games provide distinct finite player-eye and overhead poses', () => {
   for (const [kind, Game] of Object.entries(games)) {
     const game = new Game(), pose = cameraFrame(kind, game);
     assert.ok([...pose.focus, ...pose.eye, ...pose.look].every(Number.isFinite), kind);

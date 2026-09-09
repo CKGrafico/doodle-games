@@ -7,6 +7,7 @@ const games = {
   curling: ['CurlingView', 'CurlingGame'], pool: ['PoolView', 'PoolGame'],
   climbing: ['ClimbingView', 'ClimbingGame'],
   surf: ['SurfView', 'SurfGame'], ski: ['SkiView', 'SkiGame'],
+  sheep: ['SheepView', 'SheepGame'],
 };
 const queue = []; let busy = false;
 async function thumbnail(container) {
@@ -51,6 +52,8 @@ async function thumbnail(container) {
     }
     if (name === 'climbing') { position = [12.5, 8.3, 24]; focus = [0, 7.3, 0]; }
     if (name === 'surf' || name === 'ski') { position = [15, 19, 24]; focus = [0, 0, -12]; }
+    if (name === 'surf') { position = [-14, 10, 17]; focus = [1, 2, -5]; }
+    if (name === 'sheep') { position = [20, 29, 36]; focus = [0, 0, 0]; }
     camera.position.set(...position); camera.lookAt(...focus); camera.updateProjectionMatrix();
     view.renderer.render(view.scene, camera);
     const image = new Image(); image.alt = `${name === 'pool' ? '8-ball pool' : name} game: actual Three.js notebook scene`; image.width = Math.round(width); image.height = Math.round(height);

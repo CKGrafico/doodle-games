@@ -30,7 +30,8 @@ export function installCharge({ canvas, enabled, context, aim, fire, secondary =
     if (e.button !== 0 || charge.state) return;
     e.preventDefault(); canvas.focus({ preventScroll: true }); aim?.(e);
     charge.begin(performance.now(), context()); pointer = e.pointerId;
-    canvas.setPointerCapture?.(pointer); update();
+    if (document.pointerLockElement !== canvas) canvas.setPointerCapture?.(pointer);
+    update();
   });
   canvas.addEventListener('pointerup', e => {
     if (e.pointerId !== pointer || e.button !== 0) return;

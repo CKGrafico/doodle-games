@@ -13,7 +13,7 @@ export class RideView {
     this.camera.position.set(0, 12, 17); this.focus = V(0, 0, -9); this.desired = V();
     this.ray = new THREE.Raycaster(); this.plane = new THREE.Plane(V(0, 1, kind === 'ski' ? -.16 : 0), 0); this.point = V();
     this.materials = [penMaterial(BLUE, kind === 'surf' ? .18 : .025), penMaterial(BLUE, .5), penMaterial(RED, .52), penMaterial(0x596070, .5)];
-    this.track = new THREE.Mesh(new THREE.PlaneGeometry(kind === 'surf' ? 16 : 30, 150, 30, 50), this.materials[0]);
+    this.track = new THREE.Mesh(new THREE.PlaneGeometry(kind === 'surf' ? 60 : 30, 150, kind === 'surf' ? 90 : 30, 50), this.materials[0]);
     this.track.rotation.x = -Math.PI / 2; this.track.position.z = -50; this.scene.add(this.track);
     this.rider = this.makeRider(1); this.rivalModels = kind === 'ski' ? [this.makeRider(2), this.makeRider(3), this.makeRider(1)] : [];
     this.gates = []; this.features = []; this.rocks = []; this.lastCourse = null;
@@ -43,6 +43,17 @@ export class RideView {
     this.trailGeometry = new THREE.BufferGeometry(); this.trailGeometry.setAttribute('position', new THREE.BufferAttribute(this.trailPoints, 3));
     this.trail = new THREE.Line(this.trailGeometry, new THREE.LineBasicMaterial({ color: kind === 'surf' ? 0xffffff : BLUE, transparent: true, opacity: .6 }));
     this.scene.add(this.trail); this.history = [];
+    if (kind === 'surf') {
+      // A moving breaking crest makes the wave readable as a face and shoulder.
+      this.breakingCurl = new THREE.Group(); this.scene.add(this.breakingCurl);
+      for (let i = 0; i < 30; i++) {
+        const foam = this.mesh(new THREE.SphereGeometry(1, 9, 6), 0, this.breakingCurl);
+        foam.position.set(-.5 + i % 6 * 1.05, 1.8 + Math.sin(i % 6 / 5 * Math.PI) * 2, Math.floor(i / 6) * 1.8);
+        foam.scale.set(.8, .65, 1.4);
+      }
+      const crest = new THREE.Line(new THREE.BufferGeometry().setFromPoints(Array.from({length:81}, (_, i) => V(5.5, this.heightAt(5.5, 0), 20-i*1.6))), new THREE.LineBasicMaterial({color:0xffffff, transparent:true, opacity:.8}));
+      this.scene.add(crest);
+    }
     this.shadow = new THREE.Mesh(new THREE.CircleGeometry(.65, 18), new THREE.MeshBasicMaterial({ color: BLUE, transparent: true, opacity: .17, depthWrite: false }));
     this.shadow.rotation.x = -Math.PI / 2; this.scene.add(this.shadow);
     this.spray = [];
@@ -78,7 +89,8 @@ export class RideView {
   }
   heightAt(x, z, progress = 0) {
     if (this.kind === 'ski') return z * .16;
-    return Math.pow(Math.max(0, x + 1.5), 1.65) * .2 + .12 * Math.sin((z + progress) * .3);
+    const face = x <= 5.5 ? Math.pow(Math.max(0, x + 1.5), 1.65) * .2 : Math.max(0, 4.96 - (x - 5.5) * .9);
+    return face + .12 * Math.sin((z + progress) * .3);
   }
   label(text, color = BLUE) {
     const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 96;
@@ -173,12 +185,12 @@ export class RideView {
   placeRider(model, rider, game, time) {
     const z = -(rider.z - game.z), base = this.heightAt(rider.x, z, game.z);
     const jump = rider.air ? Math.sin(Math.PI * (1 - rider.air / rider.airDuration)) * (1.5 + rider.airDuration) : 0;
-    model.position.set(rider.x, base + jump, z); model.rotation.y = (rider.air ? rider.spin : -rider.vx * .045);
+    model.position.set(rider.x, base + jump, z); model.rotation.y = (rider.air ? rider.spin : this.kind === 'surf' ? -rider.heading : -rider.vx * .045);
     model.rotation.z = rider.air ? 0 : -rider.vx * .045; model.rotation.x = this.kind === 'ski' ? -.13 : 0;
     model.visible = z > -130 && z < 22;
     // A fallen rider stays visible and slides, rather than blinking out of existence.
     if (rider.recovery) { model.rotation.z = -1.2; model.position.y = base + .4; }
-    const crouch = rider.air ? .25 : (rider.boost ? .25 : .08);
+    const crouch = rider.air ? .25 : rider.crouch ? rider.crouch * .35 : (rider.boost ? .25 : .08);
     model.userData.body.position.y = -crouch + Math.sin(time * 12) * .025;
     model.userData.body.rotation.x = rider.air && rider.grabTime > .1 ? .55 : .15;
     model.userData.arms.forEach((arm, i) => arm.rotation.z = (i ? 1 : -1) * (rider.air ? 1.15 : .65));
@@ -205,6 +217,8 @@ export class RideView {
       line.position.set(line.position.x, this.heightAt(line.position.x, z, game.z) + .04, z);
     });
     if (surf) {
+      this.breakingCurl.position.z = game.shoulder;
+      this.breakingCurl.rotation.z = Math.sin(time * 3) * .025;
       game.sections.forEach((section, i) => { this.features[i].position.z = -(section.z - game.z); this.features[i].visible = section.end > game.z - 10 && section.z < game.z + 110; });
       game.foam.forEach((foam, i) => { const z = -(foam.z - game.z); this.rocks[i].position.set(foam.x, this.heightAt(foam.x, z, game.z) + .12, z); });
     } else {
@@ -229,10 +243,10 @@ export class RideView {
     });
     const portrait = this.camera.aspect < .8;
     const cameraY = surf ? 11 : 12, cameraZ = surf ? 17 : 18;
-    this.desired.set(game.x * .18 + (surf ? -3 : 0), portrait ? 17 : cameraY, portrait ? 23 : cameraZ);
+    this.desired.set(surf ? game.x * .25 - 12 : game.x * .18, surf ? (portrait ? 12 : 8) : portrait ? 17 : cameraY, surf ? (portrait ? 21 : 14) : portrait ? 23 : cameraZ);
     this.camera.position.lerp(this.desired, 1 - Math.exp(-Math.max(dt, .001) * 6));
     this.shake = Math.max(0, this.shake - dt * 1.7);
-    this.focus.set(game.x * .12 + Math.sin(time * 60) * this.shake * .25, surf ? 1 : -1.6, -9);
+    this.focus.set(game.x * .35 + Math.sin(time * 60) * this.shake * .25, surf ? 2 : -1.6, surf ? -3 : -9);
     this.camera.lookAt(this.focus);
     const fov = this.reducedMotion ? 47 : 47 + Math.min(5, Math.max(0, game.speed - 18) * .3);
     this.camera.fov = damp(this.camera.fov, fov, 3, Math.max(dt, .001)); this.camera.updateProjectionMatrix();

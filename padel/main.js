@@ -153,5 +153,5 @@ mouse=sportsMouse({canvas:$('court'),game:()=>game,active:()=>playing&&!isPaused
 try {
   const {CourtView}=await import('./render.js');
   await document.fonts.ready;
-  view=new CourtView($('court')); installViews(view, 'padel', clearInput);view.setLobby(true);requestAnimationFrame(animate);
+  view=new CourtView($('court')); installViews(view, 'padel', clearInput, { active: () => playing && !isPaused() && game.stage !== 'over' });view.setLobby(true);requestAnimationFrame(animate);
 }catch(error){fatal(error);}

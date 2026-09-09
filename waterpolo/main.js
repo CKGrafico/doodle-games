@@ -19,4 +19,4 @@ $('start').disabled=true;
 installLifecycle({canvas:$('court'),dialogs,clear,active:()=>playing&&!paused()&&game.stage!=='over',pause:()=>$('pause').click(),fatal});
 mouse=sportsMouse({canvas:$('court'),game:()=>game,active:()=>playing&&!paused()&&game.ball.owner===game.controlled&&['play','restart'].includes(game.stage),context:g=>g.stage+':'+g.ball.owner,choices:[['pass','Pass'],['lead','Lead'],['shoot','Shoot']],secondary:()=>actions.push('lead')});
 
-try{const{WaterPoloView}=await import('./render.js');await document.fonts.ready;view=new WaterPoloView($('court')); installViews(view, 'waterpolo', clear);$('start').disabled=false;requestAnimationFrame(frame)}catch(e){fatal(e)}
+try{const{WaterPoloView}=await import('./render.js');await document.fonts.ready;view=new WaterPoloView($('court')); installViews(view, 'waterpolo', clear, { active: () => playing && !paused() && game.stage !== 'over' });$('start').disabled=false;requestAnimationFrame(frame)}catch(e){fatal(e)}

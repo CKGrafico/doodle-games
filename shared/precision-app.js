@@ -46,7 +46,8 @@ export async function boot({ create, loadView, kind }) {
       if (canAim() && !mouse.charging) {
         const direction = Number(keys.has('KeyD') || keys.has('ArrowRight')) - Number(keys.has('KeyA') || keys.has('ArrowLeft'));
         const power = Number(keys.has('KeyW') || keys.has('ArrowUp')) - Number(keys.has('KeyS') || keys.has('ArrowDown'));
-        game.heading = game.angle + direction * dt * (kind === 'curling' ? .04 : .65); game.power = Math.max(.05, Math.min(1, game.power + power * dt * .3));
+        const screenSign = kind === 'pool' && view.views?.mode === 'first' ? -1 : 1;
+        game.heading = game.angle + direction * screenSign * dt * (kind === 'curling' ? .04 : .65); game.power = Math.max(.05, Math.min(1, game.power + power * dt * .3));
       }
       acc = Math.min(acc + dt, .1); while (acc >= 1 / 120) { game.step(1 / 120, { sweep: sweeping || keys.has('Space') }); acc -= 1 / 120; }
     } else acc = 0;
@@ -96,5 +97,5 @@ export async function boot({ create, loadView, kind }) {
   installTouchAim({ canvas: $('court'), active: () => canAim() || (active() && game.human && game.stage === 'place'), aim });
 observeSurface($('court'), () => view?.resize());
 window.addEventListener('resize', () => view?.resize());
-  try { const View = await loadView(); await document.fonts.ready; view = new View($('court')); installViews(view, kind, clear); $('start').disabled = false; sync(); frame = requestAnimationFrame(loop); } catch (error) { fatal(error); }
+  try { const View = await loadView(); await document.fonts.ready; view = new View($('court')); installViews(view, kind, clear, { active, canAim, charging: () => mouse?.charging }); $('start').disabled = false; sync(); frame = requestAnimationFrame(loop); } catch (error) { fatal(error); }
 }
