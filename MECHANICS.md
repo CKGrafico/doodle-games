@@ -74,7 +74,7 @@ Do not run a complete predictive simulation and allocate a new geometry every id
 
 Every future new-game task must include the collection review in AGENTS.md. Compare control meaning, responsiveness, feedback, AI progression, sport depth, pause/restart, and touch accessibility across all games. Improve common weaknesses together and record the evidence in `docs/quality-review.md`.
 
-## Charged mouse input across all eight games
+## Charged mouse input across the collection
 
 Left click on the playing surface now starts a bounded 1.1-second charge; release executes the selected action once. A short click gives a soft attempt. The visible meter caps at full power and never auto-fires. Right click during charging cancels; right click while idle keeps the sport’s existing secondary action. Keyboard and touch retain their explicit actions and selected power. Game buttons, sliders, links and native focus keep their ordinary behavior.
 
@@ -98,3 +98,11 @@ Curling: eight stones each, alternating turns, scoring stones touching the house
 Pool: a full 15-object-ball rack, cue ball, six pockets, rolling friction, elastic collisions, cushions, break legality, open table/group assignment, own-group continuation, wrong-first/no-contact/no-rail/scratch fouls, legal cue placement, and called-eight wins/losses. Eight on break is respotted; an illegal break reracks for the opponent. Deliberate arcade rules: only the eight requires a called pocket, ordinary pots may be uncalled, break scratches grant unrestricted ball in hand, planar balls cannot jump, and spin/physical stance/push fouls are omitted. AI and local two-player play are available. No online multiplayer is claimed.
 
 Both new simulations use 1/120-second steps; pool adds four collision microsteps. Use the physics for trajectories and AI shots. Regression evidence must include actual potting/scoring and full seeded completion, not merely elapsed time. See [sport references and adaptations](docs/curling-pool.md).
+
+### Climbing race
+
+Speed climbing uses the same charge lifecycle with sport-specific intent. Point at a higher hold, hold left click to charge reach, then release once to move. Right click cancels. The target stays locked while charging. Arrow keys select adjacent holds; holding and releasing Space or the touch MOVE button charges the same move. Starting any move during the countdown is a false start.
+
+The wall is 15 m with two parallel, identical original routes. Short moves are safer; skipping a hold can save time but requires more charge, consumes more grip and gives less power tolerance. Clean moves build Flow. An invalid reach or imprecise release causes a short auto-belay fall and recovery at the last secured hold. The first climber to hit the top pad wins. AI has casual, club and pro cadence/accuracy levels and uses the same reach rules.
+
+This is an arcade adaptation of the head-to-head format, not the licensed standard route. It omits official brackets, certified wall/hold dimensions, route licensing, equipment checks and detailed timing-system procedure. The simulation must verify false starts, reach/power boundaries, recoverable falls, complete player climbs and complete seeded AI races.

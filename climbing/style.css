@@ -1,0 +1,7 @@
+@import '../shared/precision.css';
+.surface{background:linear-gradient(90deg,transparent 49.8%,#2a42ad20 50%,transparent 50.2%)}
+.score{font-size:25px}.score span:last-child{color:var(--red)}
+.countdown{font:56px var(--hand);text-align:center;color:var(--red);margin:8px 0}
+.grip{height:12px;border:1px solid var(--ink);border-radius:9px;overflow:hidden}.grip i{display:block;height:100%;background:var(--ink);width:100%}
+#move.primary{margin-top:12px}.route-status{display:flex;justify-content:space-between;font:18px var(--hand);margin:12px 0}
+@media(max-width:760px){main{grid-template-rows:minmax(450px,62dvh) auto}.playing #match{display:block}}

@@ -61,3 +61,23 @@ Reviewed the existing controls, simulation, renderer, help and regression covera
 Shared charge tests cover 30/60/144 Hz timing, one-shot release, pointer capture/release outside, stale turn, right-click cancellation, lost capture, blur, hidden tabs and disabled input. Physics tests verify power changes all eight sports. The homepage uses lazy, sequential one-frame captures of real game renderers, with per-sport framing, image alt text, a clickable fallback and resource disposal. No constantly running homepage match loops.
 
 Validation: `node scripts/check.mjs` and `node --test tests/*.test.mjs` pass. The suite currently has 76 tests. No browser visual or interactive playtest was performed. Actual preview framing, mobile ergonomics, charge timing feel and AI enjoyment still need hands-on assessment; source/seeded simulation evidence does not establish those qualities. Root standards, both new games' help and references, all six earlier help screens and README were updated for future sessions. The user's remote CNAME change is preserved.
+
+## 2026-09-08: climbing race and nine-game review
+
+Reviewed all eight existing games before adding climbing race, including controls, rule simulations, help, renderers, menu previews and the 76-test baseline. The shooter-inspired principles and padel remain the interaction baseline. No concrete regression was found in the existing sports after the previous shared charging pass, so they were not changed merely to touch every folder.
+
+| Game | Review decision | Evidence / remaining limit |
+| --- | --- | --- |
+| Padel | Preserve charged shot choice, buffered contact, walls and service order. | Existing full-match, service, wall and mouse-power tests retained. |
+| Football | Preserve possession-bound charge, all 22 players, restarts and offside. | Existing full-match attack/possession tests retained. |
+| Golf | Preserve aim-lock charging and cached trajectory. | Existing preview-to-landing and complete-round tests retained. |
+| Water polo | Preserve possession clock, opposing keepers and power-scaled passing. | Existing goal-height, turnover and full-quarter tests retained. |
+| Petanca | Preserve Spanish controls, distance charging and cached previews. | Existing collision, end scoring and match-to-13 tests retained. |
+| Pickleball | Preserve buffered charged shots, kitchen and two-bounce rules. | Existing assisted-human and all-difficulty match tests retained. |
+| Curling | Preserve sweeping, guard restoration, hammer and house scoring. | Existing seeded end completion and rule tests retained. |
+| 8-ball pool | Preserve full rack, fouls, ball in hand and called-eight outcomes. | Existing fast collision and three seeded complete-rack tests retained. |
+| Climbing race | Added two identical original lanes on a 15 m illustrated wall, charged hold-to-hold moves, safe and skip routes, grip cost, Flow combo, false starts, recoverable auto-belay falls, upward camera tracking and three AI levels. | Dedicated tests cover reach/power, false start, recovery, complete human route and seeded AI completion. The route is original and not a licensed standard wall. |
+
+The homepage registers the climbing renderer and uses the same lazy one-frame scene capture as every other card. The preview contains the actual wall, holds, two climbers, ropes, pads and event structure. Root standards, README, control contract, help and sport research were updated so future additions must also review climbing.
+
+Validation passed with `node scripts/check.mjs` and all 81 tests in the complete `node --test tests/*.test.mjs` suite. No browser visual or interactive playtest was performed. Camera framing, hold selection comfort, mobile button ergonomics and difficulty feel remain subjective and need hands-on assessment; seeded completion proves progression, not balance or enjoyment.

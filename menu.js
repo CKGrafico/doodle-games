@@ -1,10 +1,11 @@
 // Render each real game scene once, retain the image, then release its WebGL context.
-// No match loops or eight continuously running canvases on the collection menu.
+// No match loops or continuously running canvases on the collection menu.
 const games = {
   padel: ['CourtView', 'PadelGame'], football: ['FootballView', 'FootballGame'],
   golf: ['GolfView', 'GolfGame'], waterpolo: ['WaterPoloView', 'WaterPoloGame'],
   petanca: ['PetancaView', 'PetancaGame'], pickleball: ['PickleballView', 'PickleballGame'],
   curling: ['CurlingView', 'CurlingGame'], pool: ['PoolView', 'PoolGame'],
+  climbing: ['ClimbingView', 'ClimbingGame'],
 };
 const queue = []; let busy = false;
 async function thumbnail(container) {
@@ -45,6 +46,7 @@ async function thumbnail(container) {
       camera.left = -h * width / height / 2; camera.right = -camera.left; camera.top = h / 2; camera.bottom = -h / 2;
       position = curling ? [8, 19, 8] : [8, 16, 13]; focus = curling ? [0, 0, -4] : [0, 0, 0];
     }
+    if (name === 'climbing') { position = [12.5, 8.3, 24]; focus = [0, 7.3, 0]; }
     camera.position.set(...position); camera.lookAt(...focus); camera.updateProjectionMatrix();
     view.renderer.render(view.scene, camera);
     const image = new Image(); image.alt = `${name === 'pool' ? '8-ball pool' : name} game: actual Three.js notebook scene`; image.width = Math.round(width); image.height = Math.round(height);
