@@ -19,6 +19,11 @@ dialog button, .small-button, .text-button, nav button { min-height: 44px; }
 .joystick, .touch-shots, #move, #sweep { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 input[type=range] { min-height: 44px; touch-action: pan-y; }
 dialog { overscroll-behavior: contain; }
+.camera-views { display: inline-flex; align-items: center; gap: 6px; margin: 0; font: 14px var(--sans); color: var(--ink-dark); pointer-events: auto; white-space: nowrap; }
+.camera-views select { width: auto; min-height: 44px; padding: 6px 8px; border: 1px solid var(--ink); border-radius: 4px; background: var(--paper); color: var(--ink-dark); font: inherit; }
+.camera-views.floating { position: absolute; right: 12px; bottom: 10px; z-index: 7; padding-left: 8px; background: var(--paper); border-radius: 4px; }
+.ride-arena .camera-views.floating { bottom: 152px; }
+@media (max-width:650px) { .camera-views { font-size: 13px; } .camera-views select { font-size: 14px; max-width: 128px; } }
 @media (pointer:coarse), (max-width:650px) {
   select, input, .small-button, .text-button { font-size: 16px; }
   .desktop-controls { display: none; }

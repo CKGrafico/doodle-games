@@ -1,3 +1,4 @@
+import { installViews } from '../shared/cameras.js';
 import { installTouchAim, observeSurface } from '../shared/touch.js';
 import { isEditing, installLifecycle } from '../shared/controls.js';
 import { installCharge, Charge } from '../shared/charge.js';
@@ -102,6 +103,6 @@ installTouchAim({ canvas: $('court'), active: () => canMove() && !keyboardCharge
 observeSurface($('court'), () => view?.resize());
 window.addEventListener('resize', () => view?.resize());
 try {
-  const { ClimbingView } = await import('./render.js'); await document.fonts.ready; view = new ClimbingView($('court'));
+  const { ClimbingView } = await import('./render.js'); await document.fonts.ready; view = new ClimbingView($('court')); installViews(view, 'climbing', clear);
   $('start').disabled = false; sync(); frameId = requestAnimationFrame(loop);
 } catch (error) { fatal(error); }

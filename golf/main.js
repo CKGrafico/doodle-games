@@ -1,3 +1,4 @@
+import { installViews } from '../shared/cameras.js';
 import { installTouchAim, observeSurface } from '../shared/touch.js';
 import { sportsMouse } from '../shared/sports-mouse.js';
 let mouse;
@@ -27,4 +28,4 @@ $('court').addEventListener('contextmenu',e=>e.preventDefault());
 installLifecycle({canvas:$('court'),dialogs,clear:()=>{mouse?.cancel();keys.clear();acc=0},active:()=>playing&&!paused()&&game.stage!=='over',pause:()=>$('pause').click(),fatal});
 mouse=sportsMouse({canvas:$('court'),game:()=>game,active:()=>playing&&!paused()&&game.stage==='aim',context:g=>g.holeIndex+':'+g.strokes+':'+g.club+':'+g.stage,lockAim:true,secondary:cycleClub,previewPower:p=>game.power=p,restorePower:()=>{const g=game,p=g.power;return()=>g.power=p},fire:p=>{game.power=p;game.shoot()}});
 
-try{const {GolfView}=await import('./render.js');await document.fonts.ready;view=new GolfView($('court'));$('start').disabled=false;view.load(game.hole);requestAnimationFrame(animate);}catch(e){fatal(e);}
+try{const {GolfView}=await import('./render.js');await document.fonts.ready;view=new GolfView($('court')); installViews(view, 'golf', () => { mouse?.cancel(); keys.clear(); });$('start').disabled=false;view.load(game.hole);requestAnimationFrame(animate);}catch(e){fatal(e);}

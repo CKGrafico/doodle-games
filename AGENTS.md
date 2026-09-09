@@ -41,3 +41,9 @@ The collection menu must show each game's actual illustrated 3D scene with relev
 ## Mobile and continuous movement contract
 
 Use `shared/touch.js` for one-pointer joystick ownership, proportional movement, a stable dead zone, cancellation and surface-size observation. A second finger must not steal a held control. Preserve full-speed keyboard movement and scale physical speed with joystick magnitude. Precision touch dragging changes aim only; launching requires an explicit action. Charge cancellation, including lost capture, must never execute a move. Reserve room for safe areas, at least 44px touch targets, and primary actions reachable without scrolling away from the playing surface. Review surf and ski as well as the nine earlier sports on future tasks. Record browser limitations honestly.
+
+## Fun and camera requirements
+
+The user rejected the first surf and ski implementations as boring. Completing a timer or passing a simulation test does not establish fun. Build deliberate, sport-specific opportunities, meaningful risk and recovery, visible feedback and reasons to replay. Verify that active skillful play outperforms coasting; never award a good result merely for waiting. Surf's cutbacks, barrels, lip airs, spin/grab landings and bankable combos, and ski's actual rivals, gate streaks and competing ramp/boost lines are the new baseline. Do not simplify them back into interchangeable left/right obstacle demos.
+
+Every current and future game must offer Top view, 3rd person and 1st person through `shared/cameras.js`. Aiming, movement and player-label projection must use the displayed camera; switching cancels active input, preserves simulation state and restores the controlled model after rendering. Keep original external framing for menu previews. Validate camera geometry and input alignment in tests, and identify visual or hands-on checks that have not been performed. Never claim that camera options alone make a game fun.

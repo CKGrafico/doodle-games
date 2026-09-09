@@ -1,3 +1,4 @@
+import { installViews } from './cameras.js';
 import { installTouchAim, observeSurface } from './touch.js';
 import { isEditing, installLifecycle } from './controls.js';
 import { installCharge } from './charge.js';
@@ -95,5 +96,5 @@ export async function boot({ create, loadView, kind }) {
   installTouchAim({ canvas: $('court'), active: () => canAim() || (active() && game.human && game.stage === 'place'), aim });
 observeSurface($('court'), () => view?.resize());
 window.addEventListener('resize', () => view?.resize());
-  try { const View = await loadView(); await document.fonts.ready; view = new View($('court')); $('start').disabled = false; sync(); frame = requestAnimationFrame(loop); } catch (error) { fatal(error); }
+  try { const View = await loadView(); await document.fonts.ready; view = new View($('court')); installViews(view, kind, clear); $('start').disabled = false; sync(); frame = requestAnimationFrame(loop); } catch (error) { fatal(error); }
 }

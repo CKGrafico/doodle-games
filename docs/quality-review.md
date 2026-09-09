@@ -101,3 +101,29 @@ Validation passed with `node scripts/check.mjs` and all 81 tests in the complete
 Reviewed control implementations and physical movement across the existing collection. Added tests for actual analogue player speeds, dead-zone and diagonal limits, multi-finger ownership, surf heat scoring and air recovery, and full ski progression through all twenty gates. Shared input changes preserve the existing mouse charge contract. The menu registers both new renderers for bounded scene previews.
 
 Validation: source checks and all 89 tests pass. Browser interaction and screenshots were not performed: the Sites environment has no compatible supervised preview for this plain static project. Touch ergonomics, camera framing and subjective difficulty need real-device testing. No claim of a browser playtest is made.
+
+## 2026-09-09: surf/ski redesign and three views across all eleven games
+
+The user found the original surf and ski games boring. The concrete weaknesses were passive surf scoring, nearly identical continuous movement loops, sparse obstacles, no ski competitors, weak trick feedback and mouse steering that kept pushing toward a boundary. Rebuilt both games around different choices and consequences rather than only adjusting their speeds. Padel's deliberate actions and pickleball's explicit feedback remain the collection baseline.
+
+Surf now has committed cutbacks and snaps, timed barrel sections, charged pumps and right-lip launches, rotations and grabs, assisted landing alignment, unbanked combos that can be lost, repetition penalties, three wave layouts, whitewater, wave breaks, session challenges and local best heats. Idle play earns no score. Ski now has three AI rivals using the same rider physics, three courses, gate streaks, optional ramp and boost lines, charged jump preparation, airborne tricks, boost rewards, rock/near-miss handling and actual finish-order ranking. There are no invisible time penalties. HUD events, sounds, trails, spray, rider poses, feature labels and course previews were rebuilt with the existing ink materials.
+
+The user then required Top view, 3rd person and 1st person everywhere. All eleven games use the same selector, camera adapter and per-game device-local preference. Existing third-person renderers remain the external-view baseline. The top view fits each playing area; climbing looks down the wall from above to retain visible holds. First person follows the athlete or delivery/shot position. The visible camera is also used for movement, ray aiming and projected labels; switching clears input, and the controlled model is hidden only during the first-person draw.
+
+| Game | Camera and control review |
+| --- | --- |
+| Padel | Full-court top view and controlled-player eye view; camera-relative movement and shot aiming share the rendered camera. |
+| Football | Full-pitch top view and active-player eye view facing the current direction of attack. |
+| Golf | Hole overview and golfer-position first person, following the ball after a shot. |
+| Water polo | Full-pool top view and swimmer-eye view facing the attacking end. |
+| Petanca | Lane overview and throwing-circle first person; existing drag and slider aiming retained. |
+| Pickleball | Court overview and active-player eye view; kitchen physics and shot buffering retained. |
+| Curling | Sheet overview and delivery-position first person; sweeping and stone rules retained. |
+| Pool | Table overview and a first-person pose behind the cue ball; native placement/shot controls retained. |
+| Climbing | Overhead wall inspection and climber-eye view aimed at the next stretch of wall. |
+| Surf | Rebuilt wave, trick and scoring loop; all three cameras track the same game. |
+| Ski | Rebuilt race and route decisions with actual opponents; all three cameras preserve race state. |
+
+Validation: `node scripts/check.mjs` and all 97 tests pass. New assertions cover idle versus active scoring, barrel dwell and uniqueness, combo loss/banking, actual 360 landings and failures, all three completed ski races with progressing rivals, gates, ramps, pickups, rocks, and charge/steering concurrency. Camera tests cover finite poses in all eleven sports, a ray-to-ground projection round trip, hidden/restored player geometry, movement orientation, and camera switching/resizing. All existing match and sport-rule regressions remain green.
+
+No browser visual or interactive playtest was performed in this pass. The static project still lacks a compatible supervised preview in this environment. Tests establish progression and camera/input consistency, not enjoyment or perfect mobile framing. Real-device feel, first-person visibility in dense scenes and touch-overlay placement remain hands-on validation items. Future work must retain the user's three-view requirement and avoid treating more camera options as a substitute for meaningful gameplay.

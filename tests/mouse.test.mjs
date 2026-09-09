@@ -54,3 +54,18 @@ test('precision power changes real golf, boule, stone and pool launches', () => 
  assert.ok(stoneTrajectory(.65,0,0).end.z<stoneTrajectory(.3,0,0).end.z);
  const pool=[];for(const power of [.1,1]){const g=new PoolGame();g.shoot(power);pool.push(Math.hypot(g.balls[0].vx,g.balls[0].vz));}assert.ok(pool[1]>pool[0]);
 });
+
+test('ride touch charging survives a second steering finger but a menu cancels it', () => {
+ const oldWindow=globalThis.window,oldDocument=globalThis.document;
+ globalThis.window=new EventTarget();globalThis.document=new EventTarget();
+ const button=new EventTarget();let captured=null,shots=0;
+ button.focus=()=>{};button.setPointerCapture=id=>captured=id;button.hasPointerCapture=id=>captured===id;button.releasePointerCapture=()=>captured=null;
+ const send=(target,type,props={})=>{const event=new Event(type,{cancelable:true});Object.assign(event,{pointerId:7,button:0,pointerType:'touch',...props});target.dispatchEvent(event);};
+ try {
+   const charge=installCharge({canvas:button,enabled:()=>true,context:()=>1,allowTouch:true,fire:()=>shots++,allowConcurrent:event=>event.steering===true});
+   send(button,'pointerdown');send(document,'pointerdown',{steering:true});assert.equal(charge.charging,true);
+   send(button,'pointerup');assert.equal(shots,1);
+   send(button,'pointerdown');send(document,'pointerdown');send(button,'pointerup');assert.equal(shots,1);
+   send(button,'pointerdown');send(button,'pointercancel');send(button,'pointerup');assert.equal(shots,1);
+ } finally {globalThis.window=oldWindow;globalThis.document=oldDocument;}
+});

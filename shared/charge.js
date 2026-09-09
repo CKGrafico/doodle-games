@@ -12,7 +12,7 @@ export class Charge {
 }
 
 // Pointer capture also handles releasing outside the canvas. Touch still taps to aim.
-export function installCharge({ canvas, enabled, context, aim, fire, secondary = () => {}, progress = () => {}, cancelled = () => {}, cancelKey = () => true, allowTouch = false }) {
+export function installCharge({ canvas, enabled, context, aim, fire, secondary = () => {}, progress = () => {}, cancelled = () => {}, cancelKey = () => true, allowTouch = false, allowConcurrent = () => false }) {
   const charge = new Charge(); let pointer = null;
   const cancel = () => {
     const was = !!charge.state; charge.cancel();
@@ -45,7 +45,7 @@ export function installCharge({ canvas, enabled, context, aim, fire, secondary =
   window.addEventListener('blur', cancel);
   document.addEventListener('visibilitychange', () => { if (document.hidden) cancel(); });
   // Opening a menu or using a different input method cancels unfinished gestures.
-  document.addEventListener('pointerdown', e => { if (e.target !== canvas) cancel(); }, true);
+  document.addEventListener('pointerdown', e => { if (e.target !== canvas && !allowConcurrent(e)) cancel(); }, true);
   window.addEventListener('keydown', e => { if (!e.repeat && !['ShiftLeft', 'ShiftRight'].includes(e.code) && cancelKey(e)) cancel(); }, true);
   return { cancel, update, get charging() { return !!charge.state; } };
 }

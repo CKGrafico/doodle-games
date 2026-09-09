@@ -17,6 +17,8 @@ async function thumbnail(container) {
     const [render, simulation] = await Promise.all([import(`./${name}/render.js`), import(`./${name}/simulation.js`)]);
     const game = new simulation[gameName]({ seed: 17 }); view = new render[viewName](canvas);
     view.setLobby?.(false);
+    if (name === 'surf') { game.z = 65; game.x = 1.5; }
+    if (name === 'ski') { game.z = 90; game.rivals.forEach((r, i) => { r.z = 98 + i * 7; r.x = (i - 1) * 2.5; }); }
     if (name === 'golf') {
       view.load(game.hole); game.ball.x = game.hole.cup.x; game.ball.z = game.hole.cup.z + 14; view.follow = true;
     }

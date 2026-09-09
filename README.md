@@ -14,8 +14,8 @@ Eleven original hand-drawn sports games built with Three.js and no build step:
 - `pool/`: 8-ball with solids/stripes, pocket and cushion physics, fouls, ball in hand, called-eight wins, AI or local two-player play.
 - `climbing/`: head-to-head 15 m climbing race with charged reaches, grip, flow, falls, false starts and three opponent levels.
 
-- `surf/`: three-wave arcade heat with cutbacks, pumps, lip airs, energy, balance and best-two scoring.
-- `ski/`: downhill slalom with twenty gates, braking, hops, rocks and timed penalties.
+- `surf/`: three-wave heat with cutbacks, snaps, barrels, charged lip airs, spins, grabs and combos you must bank before wiping out.
+- `ski/`: four-rider races on three courses, with clean-gate streaks, ramps, boost lines, airborne tricks and recoverable falls.
 
 Mobile controls share a stable analogue joystick, drag aiming and larger safe-area controls. See `docs/quality-review.md` for evidence and remaining real-device testing.
 
@@ -24,6 +24,8 @@ Mobile controls share a stable analogue joystick, drag aiming and larger safe-ar
 Visit [doodle.ckgrafico.com](https://doodle.ckgrafico.com/) or run `npm start` locally.
 
 Hold left click to charge, release to play, right click to cancel. Keyboard and touch alternatives remain available in all games. The menu previews use the actual illustrated game scenes.
+
+All eleven games offer **Top view**, **3rd person** and **1st person** in the View selector. The selected view is remembered per game on this device. Surf and ski also track local personal bests and three session challenges; their in-game help explains tricks, combos and race strategy.
 
 ## Inspiration
 

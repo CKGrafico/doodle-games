@@ -1,3 +1,4 @@
+import { installViews } from '../shared/cameras.js';
 import { installStick } from '../shared/touch.js';
 import { sportsMouse } from '../shared/sports-mouse.js';
 let mouse;
@@ -152,5 +153,5 @@ mouse=sportsMouse({canvas:$('court'),game:()=>game,active:()=>playing&&!isPaused
 try {
   const {CourtView}=await import('./render.js');
   await document.fonts.ready;
-  view=new CourtView($('court'));view.setLobby(true);requestAnimationFrame(animate);
+  view=new CourtView($('court')); installViews(view, 'padel', clearInput);view.setLobby(true);requestAnimationFrame(animate);
 }catch(error){fatal(error);}

@@ -1,3 +1,4 @@
+import { installViews } from '../shared/cameras.js';
 import { installStick } from '../shared/touch.js';
 import { sportsMouse } from '../shared/sports-mouse.js';
 let mouse;
@@ -129,5 +130,5 @@ mouse=sportsMouse({canvas:$('court'),game:()=>game,active:()=>active()&&['ready'
 
 try {
   const { PickleballView } = await import('./render.js'); await document.fonts.ready;
-  view = new PickleballView($('court')); ready = true; $('start').disabled = false; $('start').textContent = 'LET’S PLAY ↗'; requestAnimationFrame(frame);
+  view = new PickleballView($('court')); installViews(view, 'pickleball', clear); ready = true; $('start').disabled = false; $('start').textContent = 'LET’S PLAY ↗'; requestAnimationFrame(frame);
 } catch (error) { fatal(error); }
