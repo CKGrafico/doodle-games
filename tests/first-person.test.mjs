@@ -9,7 +9,7 @@ import { CurlingGame } from '../curling/simulation.js';
 import { PetancaGame } from '../petanca/simulation.js';
 import { PadelGame } from '../padel/simulation.js';
 
-function fixture(kind, game) {
+function fixture(kind, game, options={}) {
   const old = { document: globalThis.document, window: globalThis.window };
   class Element extends EventTarget {
     constructor() { super(); this.children=[]; this.style={}; }
@@ -25,7 +25,7 @@ function fixture(kind, game) {
   let active=true,charging=false,cleared=0;
   const camera=new THREE.PerspectiveCamera(40,1,.1,500);
   const view={canvas,camera,renderer:{render(){}},resize(){},render(){this.renderer.render({},this.camera);},aimAt:(x,y)=>({x,z:y})};
-  const views=installViews(view,kind,()=>{cleared++;charging=false;},{active:()=>active,canAim:()=>game.stage==='aim'||kind==='padel'||kind==='petanca',charging:()=>charging});
+  const views=installViews(view,kind,()=>{cleared++;charging=false;},{active:()=>active,canAim:()=>game.stage==='aim'||kind==='padel'||kind==='petanca',charging:()=>charging,...options});
   views.setMode('first');view.render(game);
   const send=(type,values={})=>{const e=new Event(type,{cancelable:true});Object.assign(e,{pointerType:'mouse',clientX:400,clientY:300,movementX:0,movementY:0,...values});canvas.dispatchEvent(e);};
   return {view,views,doc,win,send,parent,active:v=>active=v,charge:v=>charging=v,get cleared(){return cleared;},restore(){globalThis.document=old.document;globalThis.window=old.window;}};
@@ -47,6 +47,26 @@ test('precision first-person mouse turns incrementally without camera feedback, 
       f.views.setMode('top');assert.deepEqual(f.view.aimAt(40,30),{x:40,z:30});
     } finally {f.restore();}
   }
+});
+
+test('padel touch look owns one finger, preserves centre aim, and stops on cancellation',()=>{
+  const game=new PadelGame(),f=fixture('padel',game,{touchLook:true});
+  try {
+    f.send('pointerdown',{pointerType:'touch',pointerId:7});
+    const before=f.view.camera.quaternion.clone();
+    f.send('pointermove',{pointerType:'touch',pointerId:7,clientX:470});
+    assert.ok(before.angleTo(f.view.camera.quaternion)>.1);
+    const aim=f.view.aimAt(1,1);assert.notDeepEqual(aim,{x:1,z:1});
+    const owned=f.view.camera.quaternion.clone();
+    f.send('pointerdown',{pointerType:'touch',pointerId:8,clientX:600});
+    f.send('pointermove',{pointerType:'touch',pointerId:8,clientX:650});
+    assert.ok(owned.equals(f.view.camera.quaternion));
+    f.send('pointercancel',{pointerType:'touch',pointerId:7});
+    f.send('pointermove',{pointerType:'touch',pointerId:7,clientX:550});
+    assert.ok(owned.equals(f.view.camera.quaternion));
+    f.views.setMode('top');f.send('pointerdown',{pointerType:'touch',pointerId:9});
+    assert.deepEqual(f.view.aimAt(5,6),{x:5,z:6});
+  } finally {f.restore();}
 });
 
 test('first-person look rotates movement and centre aim, supports locked deltas and cancels on unlock',()=>{

@@ -2,14 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1,viewport-fit=cover, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f7f4e9">
   <meta name="description" content="Play doubles padel in a hand-drawn Three.js district. Read the glass, place a lob, and own the court.">
   <title>Padel District</title>
   <link rel="stylesheet" href="./style.css">
   <script type="module" src="./main.js"></script>
-<link rel="stylesheet" href="../shared/theme.css"></head>
-<body>
+<link rel="stylesheet" href="../shared/theme.css">
+<link rel="stylesheet" href="./quality.css"></head>
+<body class="padel-game">
   <main id="arena" aria-label="Padel court"><canvas id="court" aria-label="Three-dimensional padel court"></canvas></main>
   <div class="paper-grain" aria-hidden="true"></div>
   <header class="masthead">
@@ -27,7 +28,7 @@
     <h1 id="game-title">PADEL<br><span>DISTRICT</span><i class="title-dot">.</i></h1>
     <p class="intro">A little court. A lot of possibilities.</p>
     <div class="setup">
-      <div class="setup-row"><label for="mode">The match</label><select id="mode"><option value="quick">Quick match · first to 3 games</option><option value="set">One set · first to 6, win by 2</option><option value="practice">Warm-up · keep the rallies going</option></select></div>
+      <div class="setup-row"><label for="mode">The match</label><select id="mode"><option value="quick">Quick match · first to 3 games</option><option value="set">One set · first to 6, win by 2</option><option value="practice">Warm-up · rallies & placement targets</option></select></div>
       <div class="setup-row"><label for="difficulty">The opposition</label><select id="difficulty"><option value="casual">Casual</option><option value="club" selected>Club players</option><option value="pro">District pros</option></select></div>
       <label class="assist-label"><input type="checkbox" id="assist" checked><span>Help me get to the ball</span><span class="hand-note">good for a first game</span></label>
       <button id="start" class="primary">LET’S PLAY <span aria-hidden="true">↗</span></button>
@@ -44,7 +45,9 @@
   <div id="callout" class="callout" hidden role="status" aria-live="polite"><strong id="callout-title">Your serve</strong><span id="callout-detail">Press Space or tap Hit</span></div>
   <div id="player-label" class="player-label" hidden aria-hidden="true">YOU</div>
   <div id="shot-notice" class="shot-notice" hidden></div>
+  <p id="contact-hint" class="contact-hint" aria-live="off">Hold Hit to prepare · aim for open court</p>
   <section id="controls" class="controls" hidden aria-label="Match controls">
+    <div id="practice-tools" class="practice-tools" hidden><span id="practice-progress">0 targets · best rally 0</span><button id="next-ball" class="small-button">Next ball <kbd>R</kbd></button></div>
     <div class="desktop-controls"><span><kbd>W A S D</kbd> move</span><span><kbd>SPACE</kbd> hit</span><span><kbd>E</kbd> lob</span><span><kbd>Q</kbd> smash</span><span>mouse to aim</span></div>
     <div class="control-actions"><button id="camera" class="small-button">Camera: raised</button><button id="assist-toggle" class="small-button" aria-pressed="true">Movement help: on</button></div>
   </section>
@@ -54,11 +57,13 @@
   </section>
   <dialog id="help-dialog" class="paper-dialog"><p class="mouse-help">Mouse: hold left click to charge power, then release to play. Right click during charging cancels. Keyboard and touch actions retain their direct controls. Choose the mouse shot type in the control strip. Release close to contact; racket releases have a short timing buffer. Serves keep an assisted fixed pace.</p>
     <button class="close-dialog" data-close="help-dialog" aria-label="Close instructions">×</button>
-    <p class="eyebrow">A QUICK COURT BRIEFING</p><h2>Play the bounce.</h2><p class="camera-help">Cameras: View selects top, third person or first person. First person: move the mouse to look around; WASD moves relative to that view and the centre ring aims your shot. Lock mouse allows unrestricted turning; Esc releases it. Hold left click to charge, release to play; right click cancels. Switching views cancels input.</p><p class="mobile-help">Touch: use the left stick gently for slower movement, or push it fully to sprint. Keep the same finger on the stick while using action buttons with the other hand.</p>
+    <p class="eyebrow">A QUICK COURT BRIEFING</p><h2>Play the bounce.</h2><p class="camera-help">Cameras: View selects top, third person or first person. First person: move the mouse to look around; WASD moves relative to that view and the centre ring aims your shot. Lock mouse allows unrestricted turning; Esc releases it. Hold left click to charge, release to play; right click cancels. Switching views cancels input.</p><p class="mobile-help">Touch: use the left stick gently for slower movement, or push it fully to sprint. Hold a named shot button with your other thumb to prepare and hit when the ball arrives. In first person, drag the court to look around; the centre ring aims. In the other views, tap the far court to aim.</p>
+    <label class="look-setting" for="look-sensitivity">Look sensitivity <input id="look-sensitivity" type="range" min="0.3" max="2" step="0.1" value="1"></label>
     <p>Padel is doubles, with a net and playable walls. You control the blue player marked <strong>YOU</strong>. Your partner covers the other side.</p>
     <ol class="rules-list"><li><strong>Serve diagonally.</strong> Press Hit. Your player bounces the ball and serves underarm. The return must bounce first.</li><li><strong>Ground, then glass.</strong> Let the ball rebound off your walls, then hit before its second ground bounce. Hitting the opponents’ wall before their ground loses the point.</li><li><strong>Find the space.</strong> Aim with the mouse or tap the far court. Hold Space to return, E for a high lob, or Q for a smash when the ball is high.</li></ol>
     <div class="key-grid"><span><kbd>WASD / arrows</kbd> Move</span><span><kbd>Space / click</kbd> Hit</span><span><kbd>E</kbd> Lob</span><span><kbd>Q</kbd> Smash a high ball</span><span><kbd>Tab</kbd> Switch partner</span><span><kbd>Esc / P</kbd> Pause</span></div>
-    <p class="help-small">Movement help automatically positions you; directional input always takes over. On a touch screen, use the movement pad and shot buttons; SWITCH changes your partner. Push the stick fully to sprint (Shift on keyboard).</p>
+    <p class="help-small">Movement help automatically positions you; directional input always takes over, with a short braking pause before help resumes. The receiver is chosen once per incoming shot. Releasing movement never switches you to a different player. Tab or SWITCH deliberately changes your partner.</p>
+    <p class="help-small">Warm-up: keep a rally going and land your returns in the red circles. A target counts on the first legal bounce, then moves. The warm-up opponents let shots bounce so you can practise placement. Next ball (R) immediately resets the feed and keeps your practice totals.</p>
     <p class="help-small">Quick match: first to 3 games, deciding point at 40–40. One set: advantage scoring, 7-point tie-break at 6–6. Warm-up has no match winner. This is an arcade adaptation: assisted strokes and no out-of-court retrieval.</p>
     <button class="primary" data-close="help-dialog">GOT IT</button>
   </dialog>

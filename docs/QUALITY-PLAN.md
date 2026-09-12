@@ -1,6 +1,14 @@
 # Doodle Games quality recovery plan
 
-Date: 2026-09-10. Status: proposed implementation plan. This document changes no gameplay.
+Date: 2026-09-10. Status: implementation started after the user's “implement”. The first padel candidate is implemented. Hands-on quality gates remain open.
+
+## Implementation checkpoint
+
+The first implementation covers padel movement and braking, stable receiver selection, render snapshots, timed racket poses, practice placement targets and immediate feeds, touch look, viewport fitting, pooled effects and batched static ink. The detailed evidence and blocked device checks live in [feel-baseline.md](feel-baseline.md).
+
+All 123 automated tests pass. This is not acceptance of the technical performance or enjoyment targets below: browser navigation timed out, and real-device playtests have not been completed. Padel provides a developer-only `?feel=1` comparison for original movement/raw steps versus responsive movement/interpolation, with identical practice seeds and local frame statistics. This comparison retains the other new features in both modes; it is not a full copy of the previous release.
+
+Next checkpoint: play this padel candidate in all three views, collect frame data and assess contact, assistance and touch ergonomics. Address those findings before extracting the new padel helpers or migrating the other eleven games. Golf and surf remain the next proving grounds in the sequence below. No new game is added by this delivery.
 
 ## Goal and scope
 

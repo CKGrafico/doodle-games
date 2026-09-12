@@ -47,6 +47,10 @@ On touch screens, tap the playing surface to aim without firing. Movement games 
 
 ## Simulation and lifecycle
 
+Padel's quality candidate now uses 78 m/s² acceleration, 94 m/s² braking and 110 m/s² braking against a reversal, with the existing 6.8 m/s run and 8 m/s sprint caps. Manual movement wins immediately and suppresses assistance for 240 ms after the last directional input. Assisted receiver selection happens once per incoming stroke, never on a later key release. Deliberate partner switching preserves first-person look direction. Its production loop interpolates render snapshots between 120 Hz ticks and resets them at discontinuities; other games retain their current loops pending padel's hands-on gate.
+
+Holding a padel shot or charging now visibly prepares the racket. Physical contact starts the corresponding contact/recovery pose; volleys have a shorter recovery than full strokes. A contact hint explains compulsory bounces, distance and height. The hit model still uses assisted reach and launch arcs. Warm-up adds three cycling placement circles, counted on a human return's first legal bounce; the warm-up opponent waits for the bounce. R/Next ball immediately starts a new feed without clearing target totals or best rally. In padel first person, dragging the touch canvas rotates the view; named shot buttons keep their held-contact behaviour. Sensitivity is stored locally.
+
 Use a bounded fixed timestep (currently 1/120 second for padel, pickleball and petanca; 1/60 for football, golf and water polo), with rendering separate from physics. Pause/help/results stop gameplay time and input. Blur and hidden tabs clear input and pause an active game. Closing a dialog clears stale actions before returning to play. Restart/rematch clears the previous game's state, timers, input, and score.
 
 Use swept crossings for fast goals and cup contact. Score from the ball's position and height at crossing, not from its later resting position. Define whether the whole ball must cross and account for its radius at posts/crossbars.

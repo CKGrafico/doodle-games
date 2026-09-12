@@ -14,11 +14,11 @@ export function adjustPrecision(game, kind, dx, fine = false) {
   else game.heading = clamp(game.heading + delta, -.42, .42);
 }
 
-export function installFirstPerson(view, kind, { active, canAim = active, charging = () => false }, refresh, clear) {
+export function installFirstPerson(view, kind, { active, canAim = active, charging = () => false, touchLook = false, sensitivity = () => 1 }, refresh, clear) {
   const precision = PRECISION_SPORTS.includes(kind), look = LOOK_SPORTS.includes(kind);
   if (!precision && !look) return null;
   const canvas = view.canvas;
-  let last = null, yaw = 0, pitch = 0, mouseEvent = false, locked = false;
+  let last = null, yaw = 0, pitch = 0, mouseEvent = false, locked = false, touchPointer = null;
   const enabled = () => view.views?.mode === 'first' && active();
   const lock = document.createElement('button'); lock.type = 'button'; lock.textContent = 'Lock mouse';
   const hint = document.createElement('span');
@@ -44,6 +44,8 @@ export function installFirstPerson(view, kind, { active, canAim = active, chargi
   }
   function release() {
     last = null;
+    const pointer = touchPointer; touchPointer = null;
+    if (pointer !== null && canvas.hasPointerCapture?.(pointer)) canvas.releasePointerCapture(pointer);
     if (document.pointerLockElement === canvas) document.exitPointerLock?.();
   }
   lock.addEventListener('click', async () => {
@@ -60,9 +62,18 @@ export function installFirstPerson(view, kind, { active, canAim = active, chargi
     if (locked && !enabled()) release();
   });
   document.addEventListener('pointerlockerror', () => { hint.textContent = 'Move within the game to aim. Leave and re-enter to reposition.'; });
-  canvas.addEventListener('pointerdown', e => { mouseEvent = e.pointerType !== 'touch'; }, true);
-  canvas.addEventListener('pointermove', e => {
+  canvas.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'touch' && touchLook && touchPointer !== null) return;
     mouseEvent = e.pointerType !== 'touch';
+    if (e.pointerType === 'touch' && touchLook && look && enabled() && touchPointer === null) {
+      touchPointer = e.pointerId; last = { x: e.clientX, y: e.clientY }; mouseEvent = true;
+      canvas.setPointerCapture?.(e.pointerId);
+    }
+  }, true);
+  canvas.addEventListener('pointermove', e => {
+    if (e.pointerType === 'touch' && !touchLook) { mouseEvent = false; last = null; return; }
+    if (e.pointerType === 'touch' && e.pointerId !== touchPointer) return;
+    mouseEvent = e.pointerType !== 'touch' || touchLook && e.pointerId === touchPointer;
     if (!mouseEvent || !enabled()) { last = null; return; }
     const dx = locked ? e.movementX : last ? e.clientX - last.x : 0;
     const dy = locked ? e.movementY : last ? e.clientY - last.y : 0;
@@ -71,11 +82,15 @@ export function installFirstPerson(view, kind, { active, canAim = active, chargi
       e.stopImmediatePropagation();
       if (!charging()) { adjustPrecision(view.views.game, kind, dx, e.shiftKey); refresh(); }
     } else if (look) {
-      yaw -= clamp(dx || 0, -160, 160) * .0025;
-      pitch = clamp(pitch - clamp(dy || 0, -160, 160) * .0025, -.9, .65);
+      const gain = .0025 * clamp(sensitivity(), .3, 2);
+      yaw -= clamp(dx || 0, -160, 160) * gain;
+      pitch = clamp(pitch - clamp(dy || 0, -160, 160) * gain, -.9, .65);
       refresh();
     }
   }, true);
+  for (const name of ['pointerup', 'pointercancel', 'lostpointercapture']) canvas.addEventListener(name, e => {
+    if (e.pointerId === touchPointer) { touchPointer = null; last = null; }
+  });
   canvas.addEventListener('pointerleave', () => { last = null; });
   canvas.addEventListener('wheel', e => {
     if (!enabled() || !canAim() || charging() || !['golf', 'petanca'].includes(kind)) return;

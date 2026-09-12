@@ -32,18 +32,28 @@ export function makeRacketPlayer(view, color, id, { perforated = true } = {}) {
     return {root,body,legs,arms,id};
   }
 
-export function animateRacketPlayers(models, game, dt, time) {
+export function animateRacketPlayers(models, game, dt, time, { pose, footwork = false } = {}) {
   models.forEach((model,i)=>{
       const p=game.players[i];model.root.position.set(p.x,0,p.z);
       const running=Math.min(1,Math.hypot(p.vx,p.vz)/4);
-      model.legs[0].rotation.x=Math.sin(time*15+i)*.58*running;
+      const step = footwork ? p.stride : time * 15 + i;
+      model.legs[0].rotation.x=Math.sin(step)*.58*running;
       model.legs[1].rotation.x=-model.legs[0].rotation.x;
-      model.body.position.y=Math.abs(Math.sin(time*15+i))*.045*running;
+      model.body.position.y=Math.abs(Math.sin(step))*.045*running;
       const swing=p.swing>0?Math.sin((1-p.swing/.4)*Math.PI):0;
       model.arms[1].rotation.x=-.2-swing*1.65;model.arms[1].rotation.z=-.1-swing*.5;
       model.arms[0].rotation.x=-.25+model.legs[0].rotation.x*.6;
-      const angle=Math.atan2(game.ball.x-p.x,game.ball.z-p.z);
+      const stroke = pose?.(p);
+      if (stroke) {
+        model.arms[1].rotation.x = stroke.armX;
+        model.arms[1].rotation.z = stroke.armZ;
+        model.body.rotation.y = stroke.twist;
+        model.body.rotation.x = -.07 * running;
+      }
+      const angle=stroke?.locked?p.stroke.angle:Math.atan2(game.ball.x-p.x,game.ball.z-p.z);
       let diff=angle-model.root.rotation.y;diff=Math.atan2(Math.sin(diff),Math.cos(diff));
-      model.root.rotation.y+=diff*(1-Math.exp(-dt*7));
+      const contact = stroke?.locked && model.lastStroke !== p.stroke;
+      model.lastStroke = p.stroke;
+      model.root.rotation.y+=diff*(contact?1:1-Math.exp(-dt*(pose?12:7)));
     });
 }

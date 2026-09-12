@@ -33,7 +33,7 @@ export function sportsMouse({ canvas, game: getGame, active, context, choices = 
   document.addEventListener('pointerdown', e => { if (e.target !== canvas) pending = null; }, true);
   window.addEventListener('keydown', e => { if (!e.repeat && ['Space', 'KeyE', 'KeyQ', 'KeyF', 'Tab'].includes(e.code)) pending = null; }, true);
   return {
-    cancel, update: now => control.update(now), get charging() { return charging; },
+    cancel, update: now => control.update(now), get charging() { return charging; }, get kind() { return select.value; },
     take() {
       if (!pending) return null;
       const g = getGame();

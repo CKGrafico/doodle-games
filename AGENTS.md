@@ -26,6 +26,8 @@ Quality work on the existing games is part of a new-game request, not an optiona
 
 ## Required completion evidence
 
+The active quality recovery sequence is recorded in `docs/QUALITY-PLAN.md`. The 2026-09-10 padel candidate and its measured/blocked checks are in `docs/feel-baseline.md`. Review those before further quality work. Do not assume that passing 123 simulation/source tests closes the hands-on gate, or propagate the padel-only motion/snapshot helpers to the other eleven games as already proven. Complete the padel playtest and address its findings before the planned shared extraction, golf/surf proving stages and collection rollout. Preserve the optional `?feel=1` seeded comparison and its explicit measurement limitations.
+
 Run `node scripts/check.mjs` and `node --test tests/*.test.mjs` (also exposed as `npm run check` and `npm test`). The GitHub workflow repeats these checks on pushes and pull requests.
 
 For mechanics changes, add targeted regression tests that would have caught the defect. For a new sport, cover its defining rule, valid and invalid scoring, restarts/turn transitions, and a complete seeded game or round. Check finite coordinates and reachable actions. Do not replace real progression assertions with “no exception” or “timer ended.”

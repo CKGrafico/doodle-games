@@ -1,15 +1,21 @@
 import { COURT, Score, Rally, clamp, sideOf, signOf, netHeight, wallKind } from './rules.js';
+import { moveAthlete } from './feel.js';
 
 export const GRAVITY = 9.81;
 export const FIXED_STEP = 1 / 120;
 const R = COURT.ballRadius;
 const distance = (a,b) => Math.hypot(a.x-b.x,a.z-b.z);
+export const PRACTICE_TARGETS = Object.freeze([
+  { x: -2.7, z: -7.8, radius: 1.4 },
+  { x: 2.7, z: -7.8, radius: 1.4 },
+  { x: 0, z: -4.5, radius: 1.4 },
+]);
 export function randomGenerator(seed=4187) {
   return () => {seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t=Math.imul(seed ^ seed >>> 15, 1 | seed); t=t+Math.imul(t ^ t >>> 7,61 | t)^t; return ((t ^ t>>>14)>>>0)/4294967296;};
 }
 
 export class PadelGame {
-  constructor({mode='quick', difficulty='club', assisted=true, seed=4187}={}) {
+  constructor({mode='quick', difficulty='club', assisted=true, seed=4187, motionProfile='responsive'}={}) {
     this.random=randomGenerator(seed); this.mode=mode; this.difficulty=difficulty; this.assisted=assisted;
     this.score=new Score(mode); this.time=0; this.stage='ready'; this.timer=0;
     this.controlled=0; this.switchLock=0; this.serveAttempt=1; this.events=[];
@@ -18,13 +24,19 @@ export class PadelGame {
     this.rally=null; this.rallyHits=0; this.bestRally=0; this.wallReturns=0;
     this.message='Your serve'; this.aim={x:-2,z:-7.5}; this.lastHitTime=-10;
     this.lastWallTime=-10; this.prepareServe();
+    this.motionProfile = motionProfile;
+    this.manualUntil = 0; this.switchHeld = false;
+    this.practice = { placements: 0, target: 0 };
+    this.shotHint = 'Hold a shot to prepare, then play the bounce';
   }
-  emit(type,data={}) {this.events.push({type,...data});}
+  emit(type,data={}) {this.events.push({type,time:this.time,x:this.ball.x,y:this.ball.y,z:this.ball.z,...data});}
   drainEvents() {return this.events.splice(0);}
   prepareServe() {
+    this.poseVersion = (this.poseVersion ?? 0) + 1;
+    this.designatedChaser = null; this.manualUntil = 0; this.switchLock = 0;
     const server=this.score.server, team=Math.floor(server/2), s=signOf(team);
     const sx=(this.score.serveRight?1:-1)*s*2.55;
-    this.players.forEach((p,i)=>{p.x=(i%2===0?-2.5:2.5);p.z=signOf(p.team)*7.5;p.swing=0;p.vx=0;p.vz=0;});
+    this.players.forEach((p,i)=>{p.x=(i%2===0?-2.5:2.5);p.z=signOf(p.team)*7.5;p.swing=0;p.vx=0;p.vz=0;p.cooldown=0;p.stride=0;p.preparation=0;p.stroke=null;});
     const p=this.players[server];p.x=sx;p.z=s*8.25;
     const partner=this.players[server^1];partner.x=-sx;partner.z=s*3.6;
     const candidates=this.players.filter(p=>p.team!==team);
@@ -40,8 +52,31 @@ export class PadelGame {
     const p=this.players[this.score.server], s=signOf(p.team);
     this.rally=new Rally(p.team,p.x,this.receiver);
     const target={x:-Math.sign(p.x)*(1.7+this.random()*1.15),z:-s*5.3};
-    this.launch(target,'serve');p.swing=0.42;this.stage='rally';this.rallyHits=1;
+    this.beginStroke(p,'serve');this.launch(target,'serve');this.stage='rally';this.rallyHits=1;
     this.message='Rally on';this.emit('hit',{kind:'serve',player:p.id});
+  }
+  beginStroke(player, kind) {
+    const angle = Math.atan2(this.ball.x - player.x, this.ball.z - player.z);
+    const hand = (this.ball.x - player.x) * signOf(player.team) < 0 ? 'forehand' : 'backhand';
+    const duration = kind === 'volley' ? .26 : kind === 'smash' ? .38 : .32;
+    player.stroke = { kind, hand, angle, duration, time: this.time };
+    player.swing = duration; player.preparation = 0;
+    this.lastStriker = player.id;
+    this.lastHumanStrike = player.id === this.controlled;
+  }
+  get practiceTarget() { return PRACTICE_TARGETS[this.practice?.target ?? 0]; }
+  retryPractice() {
+    if (this.mode !== 'practice') return false;
+    this.bestRally = Math.max(this.bestRally, this.rallyHits);
+    this.serveAttempt = 1; this.prepareServe(); this.startServe();
+    return true;
+  }
+  recordPlacement() {
+    if (this.mode !== 'practice' || this.rally.isServe || !this.lastHumanStrike || this.rally.lastTeam !== 0) return;
+    if (distance(this.ball, this.practiceTarget) > this.practiceTarget.radius) return;
+    this.practice.placements++;
+    this.practice.target = (this.practice.target + 1) % PRACTICE_TARGETS.length;
+    this.emit('placement', { count: this.practice.placements });
   }
   launch(target,kind,power=.65) {
     const b=this.ball, dx=target.x-b.x, dz=target.z-b.z;
@@ -80,7 +115,7 @@ export class PadelGame {
     this.bestRally=Math.max(this.bestRally,this.rallyHits);
     const scored=this.score.award(result.winner);
     this.serveAttempt=1;
-    this.stage=scored.match?'over':'between';this.timer=2.2;
+    this.stage=scored.match?'over':'between';this.timer=this.mode==='practice'?.85:2.2;
     this.message=scored.match?(result.winner===0?'The district is yours!':'The district wins'):result.reason;
     this.ball.vx=this.ball.vy=this.ball.vz=0;
     this.emit('point',{...result,...scored});return true;
@@ -98,6 +133,8 @@ export class PadelGame {
     return b;
   }
   movePlayer(p,target,speed,dt) {
+    if (this.motionProfile !== 'classic') { moveAthlete(p, target, speed, dt); return; }
+    // Developer comparison only; the public game always uses responsive motion.
     let dx=target.x-p.x,dz=target.z-p.z,d=Math.hypot(dx,dz);
     const step=Math.min(d,speed*dt);
     const oldX=p.x,oldZ=p.z;
@@ -106,14 +143,25 @@ export class PadelGame {
     p.z=p.team===0?clamp(p.z,0.6,9.55):clamp(p.z,-9.55,-0.6);
     p.vx=(p.x-oldX)/dt;p.vz=(p.z-oldZ)/dt;
   }
+  contactState(p, kind = 'drive') {
+    if (this.stage !== 'rally') return { ready: false, hint: this.stage === 'ready' ? 'Press Hit to serve' : 'Get ready' };
+    if (p.cooldown > 0) return { ready: false, hint: 'Recovering' };
+    if (!this.rally || p.team === this.rally.lastTeam || sideOf(this.ball.z) !== p.team) return { ready: false, hint: 'Read the return' };
+    if (this.rally.isServe && this.rally.bounces === 0) return { ready: false, hint: 'Let the serve bounce' };
+    if (this.rally.isServe && p.id !== this.receiver) return { ready: false, hint: 'Your partner receives' };
+    if (distance(p, this.ball) > (p.id === this.controlled ? 1.65 : 1.35)) return { ready: false, hint: 'Move closer to the ball' };
+    const maxHeight = p.id === this.controlled ? (kind === 'smash' ? 3.1 : 2.25) : 2.05;
+    if (this.ball.y < .23) return { ready: false, hint: 'Wait for the bounce to rise' };
+    if (this.ball.y > maxHeight) return { ready: false, hint: this.ball.y <= 3.1 ? 'High ball: try a smash' : 'Let the lob drop' };
+    return { ready: true, hint: kind === 'smash' && this.ball.y >= 1.65 ? 'Smash window' : this.rally.bounces === 0 ? 'Volley window' : 'Hit window' };
+  }
   hit(p,kind='drive',aim,power=.65) {
     if(this.stage!=='rally' || this.time-this.lastHitTime<0.17 || p.cooldown>0)return false;
     const b=this.ball;
-    if(!this.rally || p.team===this.rally.lastTeam || sideOf(b.z)!==p.team)return false;
-    if(this.rally.isServe && (this.rally.bounces===0 || p.id!==this.receiver))return false;
-    const reach=p.id===this.controlled?1.65:1.35;
-    const maxHeight=p.id===this.controlled?(kind==='smash'?3.1:2.25):2.05;
-    if(distance(p,b)>reach || b.y<0.23 || b.y>maxHeight)return false;
+    if(!this.contactState(p,kind).ready)return false;
+    // The warm-up opponent gives placement attempts a first bounce to land.
+    if (this.mode === 'practice' && p.team === 1 && this.rally.bounces === 0) return false;
+    const volley = !this.rally.isServe && this.rally.bounces === 0;
     const result=this.rally.strike(p.team,p.id);if(this.resolve(result))return false;
     const opponent=1-p.team,s=signOf(opponent);
     let target;
@@ -128,9 +176,12 @@ export class PadelGame {
     if(kind==='smash' && b.y<1.65)kind='drive';
     if(kind==='lob')target.z=s*8.35;
     if(kind==='smash')target.z=s*6.5;
-    this.launch(target,kind,power);p.swing=0.4;p.cooldown=0.44;this.rallyHits++;
+    const strokeKind = kind === 'drive' && volley ? 'volley' : kind;
+    this.beginStroke(p, strokeKind);
+    this.launch(target,kind,power);p.cooldown=strokeKind==='volley'?.3:.4;this.rallyHits++;
+    this.bestRally=Math.max(this.bestRally,this.rallyHits);
     if(this.time-this.lastWallTime<2 && this.lastWallTeam===p.team){this.wallReturns++;this.emit('wall-return');}
-    this.message=kind==='lob'?'Lob!':kind==='smash'?'Smash!':'Rally on';this.emit('hit',{kind,player:p.id});
+    this.message=kind==='lob'?'Lob!':kind==='smash'?'Smash!':'Rally on';this.emit('hit',{kind:strokeKind,hand:p.stroke.hand,player:p.id,power});
     return true;
   }
   updatePlayers(dt,input) {
@@ -138,23 +189,30 @@ export class PadelGame {
     const prediction=this.predict();
     const possible=this.players.filter(p=>p.team===receiving && (!this.rally?.isServe || p.id===this.receiver));
     possible.sort((a,b)=>distance(a,prediction)-distance(b,prediction));
-    if(this.designatedChaser===null || this.designatedChaser===undefined)this.designatedChaser=possible[0]?.id;
+    const newRead = this.designatedChaser === null || this.designatedChaser === undefined;
+    if(newRead)this.designatedChaser=possible[0]?.id;
     const chaser=this.players[this.designatedChaser];
-    if(receiving===0 && chaser && this.assisted && this.switchLock<=0 && !(input.moveX||input.moveZ))this.controlled=chaser.id;
+    const manual = !!(input.moveX || input.moveZ);
+    if (manual) this.manualUntil = this.time + .24;
+    // Make a single choice at the incoming stroke, never on a later key release.
+    if(newRead && receiving===0 && chaser && this.assisted && this.switchLock<=0 && !manual && this.time>=this.manualUntil && !input.preparing)this.controlled=chaser.id;
     for(const p of this.players) {
       p.cooldown=Math.max(0,p.cooldown-dt);p.swing=Math.max(0,p.swing-dt);
       const human=p.id===this.controlled;
       const moving=human && (input.moveX || input.moveZ);
       if(moving) {
-        const d=Math.hypot(input.moveX,input.moveZ);
-        this.movePlayer(p,{x:p.x+input.moveX/d,z:p.z+input.moveZ/d},(input.sprint?8:6.8)*Math.min(1,d),dt);
-      } else if(!human || this.assisted) {
+        const x = input.moveX || 0, z = input.moveZ || 0, d=Math.hypot(x,z);
+        this.movePlayer(p,{x:p.x+x/d,z:p.z+z/d},(input.sprint?8:6.8)*Math.min(1,d),dt);
+      } else if(!human || this.assisted && this.time >= this.manualUntil) {
         const homeX=(p.id%2===0?-2.4:2.4)+clamp(b.x*0.18,-0.5,0.5);
         const homeZ=signOf(p.team)*(p.team===receiving?6.4:3.5);
         const target=p===chaser?{x:prediction.x+(human?0:p.readX),z:prediction.z+(human?0:p.readZ)}:{x:homeX,z:homeZ};
         const speed=human?6.9:p.team===0?5.5:{casual:3.7,club:4.9,pro:6.1}[this.difficulty];
         this.movePlayer(p,target,speed,dt);
-      } else {p.vx=0;p.vz=0;}
+      } else {this.movePlayer(p,p,0,dt);}
+      const preparing = p.team === receiving && (human ? input.shot || input.preparing : distance(p, b) < 3);
+      p.preparation += ((preparing ? 1 : 0) - (p.preparation ?? 0)) * (1 - Math.exp(-dt * 18));
+      if (human) this.shotHint = this.contactState(p, input.shot || input.preparing || 'drive').hint;
       if(p.team===receiving) {
         if(human) {if(input.shot)this.hit(p,input.shot,input.aim,input.power);}
         else if(p===chaser || distance(p,b)<0.8) {
@@ -167,7 +225,8 @@ export class PadelGame {
   step(dt,input={}) {
     if(this.stage==='over')return;
     this.time+=dt;this.timer+=this.stage==='ready'?dt:0;this.switchLock=Math.max(0,this.switchLock-dt);
-    if(input.switch && this.switchLock<=0){this.controlled^=1;this.switchLock=1;}
+    if(input.switch && !this.switchHeld){this.controlled^=1;this.switchLock=1;this.manualUntil=this.time+.24;this.emit('switch',{player:this.controlled});}
+    this.switchHeld=!!input.switch;
     if(this.stage==='ready') {
       if(Math.floor(this.score.server/2)===1 ? this.timer>1.25 : input.shot)this.startServe();
       return;
@@ -198,7 +257,9 @@ export class PadelGame {
     }
     if(b.y<=R && b.vy<0) {
       b.y=R;
+      const firstBounce = this.rally.bounces === 0;
       if(this.resolve(this.rally.floor(b.x,b.z)))return;
+      if (firstBounce) this.recordPlacement();
       b.vy=-b.vy*0.73;b.vx*=0.965;b.vz*=0.965;this.emit('bounce');
     }
     for(const axis of ['x','z']) {

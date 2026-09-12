@@ -1,6 +1,9 @@
 import { makeRacketPlayer, animateRacketPlayers } from '../shared/racket-player.js';
 import * as THREE from '../vendor/three.module.min.js';
 import { COURT, clamp } from './rules.js';
+import { strokePose } from './feel.js';
+import { courtCameraPose, PlayerEye } from './camera.js';
+import { batchStaticInk } from './static-ink.js';
 
 const BLUE=0x2a42ad, RED=0xc94b59, PAPER=0xf7f4e9, GRAPHITE=0x64708c;
 const V=(x,y,z)=>new THREE.Vector3(x,y,z);
@@ -18,9 +21,12 @@ export class CourtView {
     this.camera.position.set(15,22,28);this.camera.lookAt(0,0,0);
     this.materials=new Map();this.lineMaterials=new Map();
     this.mode='raised';this.lobby=true;this.players=[];this.effects=[];this.trail=[];
+    this.eye = new PlayerEye(); this.reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.trailClock = 0; this.trailSample = 0;
     this.raycaster=new THREE.Raycaster();this.ground=new THREE.Plane(V(0,1,0),0);
     this.point=V(0,0,0);this.projectPoint=V(0,0,0);
     this.buildCourt();this.buildDistrict();
+    this.staticBatch=batchStaticInk(this.scene);
     for(let i=0;i<4;i++)this.players.push(this.makePlayer(i<2?BLUE:RED,i));
     this.ball=this.mesh(new THREE.SphereGeometry(COURT.ballRadius*1.18,14,10),0xc4c725,.95,true);
     this.scene.add(this.ball);
@@ -29,8 +35,17 @@ export class CourtView {
     this.target=this.ring(0.29,BLUE);this.scene.add(this.target);this.target.position.set(-2,0.035,-7.5);
     this.targetDot=this.disk(.035,BLUE,.8);this.target.add(this.targetDot);this.targetDot.rotation.x=0;
     this.activeRing=this.ring(0.54,BLUE);this.scene.add(this.activeRing);
+    this.practiceRing=this.ring(1.4,RED);this.scene.add(this.practiceRing);this.practiceRing.visible=false;
+    const guideGeometry = new THREE.BufferGeometry();
+    guideGeometry.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(6), 3));
+    this.heightGuide = new THREE.Line(guideGeometry, this.lineMat(BLUE, .22));this.heightGuide.frustumCulled=false;this.scene.add(this.heightGuide);
     const trailGeometry=new THREE.BufferGeometry();trailGeometry.setAttribute('position',new THREE.Float32BufferAttribute(new Float32Array(28*3),3));
     this.trailLine=new THREE.Line(trailGeometry,new THREE.LineBasicMaterial({color:0xbaa919,transparent:true,opacity:.6}));this.trailLine.frustumCulled=false;this.scene.add(this.trailLine);
+    // A bounded pool: contacts never allocate or dispose geometry during play.
+    for (let i=0;i<12;i++) {
+      const mesh=this.ring(.15,BLUE);mesh.visible=false;mesh.material.depthWrite=false;this.scene.add(mesh);
+      this.effects.push({mesh,life:0,duration:.3,billboard:false});
+    }
     this.resize();
   }
   mat(color,fill=.07) {const key=`${color}:${fill}`;if(!this.materials.has(key))this.materials.set(key,penMaterial(color,fill));return this.materials.get(key);}
@@ -43,7 +58,15 @@ export class CourtView {
   }
   box(w,h,d,color=BLUE,fill=.05){return this.mesh(new THREE.BoxGeometry(w,h,d),color,fill);}
   line(points,color=BLUE,opacity=.8,parent=this.scene) {const l=new THREE.Line(new THREE.BufferGeometry().setFromPoints(points.map(p=>V(...p))),this.lineMat(color,opacity));parent.add(l);return l;}
-  bar(a,b,r=.025,color=BLUE,parent=this.scene) {const start=V(...a),end=V(...b);const mesh=new THREE.Mesh(new THREE.CylinderGeometry(r,r,start.distanceTo(end),6),new THREE.MeshBasicMaterial({color}));mesh.position.copy(start).add(end).multiplyScalar(.5);mesh.quaternion.setFromUnitVectors(V(0,1,0),end.sub(start).normalize());parent.add(mesh);return mesh;}
+  bar(a,b,r=.025,color=BLUE,parent=this.scene) {
+    this.barGeometry??=new THREE.CylinderGeometry(1,1,1,6);this.barMaterials??=new Map();
+    if(!this.barMaterials.has(color))this.barMaterials.set(color,new THREE.MeshBasicMaterial({color}));
+    const start=V(...a),end=V(...b),length=start.distanceTo(end);
+    const mesh=new THREE.Mesh(this.barGeometry,this.barMaterials.get(color));
+    mesh.position.copy(start).add(end).multiplyScalar(.5);
+    mesh.quaternion.setFromUnitVectors(V(0,1,0),end.sub(start).normalize());
+    mesh.scale.set(r,length,r);mesh.userData.staticBar=true;parent.add(mesh);return mesh;
+  }
   disk(r,color,opacity) {const m=new THREE.Mesh(new THREE.CircleGeometry(r,32),new THREE.MeshBasicMaterial({color,transparent:true,opacity,depthWrite:false}));m.rotation.x=-Math.PI/2;return m;}
   ring(r,color) {const m=new THREE.Mesh(new THREE.RingGeometry(r-.023,r+.023,48),new THREE.MeshBasicMaterial({color,side:THREE.DoubleSide,transparent:true,opacity:.8}));m.rotation.x=-Math.PI/2;return m;}
   textSprite(text,color=BLUE,size=1.2) {
@@ -125,49 +148,84 @@ export class CourtView {
   }
   makePlayer(color,id) { return makeRacketPlayer(this, color, id); }
   resize() {
-    this.width=innerWidth;this.height=innerHeight;
+    const rect=this.canvas.getBoundingClientRect();
+    this.width=Math.max(1,rect.width);this.height=Math.max(1,rect.height);
+    this.left=rect.left;this.top=rect.top;
     this.renderer.setSize(this.width,this.height,false);this.camera.aspect=this.width/this.height;
     this.camera.updateProjectionMatrix();
   }
   setLobby(value){this.lobby=value;this.target.visible=!value;this.activeRing.visible=!value;this.trail=[];}
   aimAt(clientX,clientY) {
-    this.raycaster.setFromCamera(new THREE.Vector2(clientX/this.width*2-1,-clientY/this.height*2+1),this.camera);
+    const rect=this.canvas.getBoundingClientRect();
+    this.raycaster.setFromCamera(new THREE.Vector2((clientX-rect.left)/rect.width*2-1,-(clientY-rect.top)/rect.height*2+1),this.camera);
     const point=this.raycaster.ray.intersectPlane(this.ground,this.point);
     if(!point)return null;
     return {x:clamp(point.x,-4.4,4.4),z:-clamp(Math.abs(Math.min(point.z,-2.2)),2.2,9)};
   }
   effect(event) {
-    if(event.type!=='wall')return;
-    const circle=new THREE.Mesh(new THREE.RingGeometry(.12,.15,24),new THREE.MeshBasicMaterial({color:RED,transparent:true,opacity:1,side:THREE.DoubleSide,depthWrite:false}));
-    circle.position.set(event.x,event.y,event.z);if(event.axis==='x')circle.rotation.y=Math.PI/2;
-    this.scene.add(circle);this.effects.push({mesh:circle,life:.5});
+    if (event.type==='ready') {
+      this.trail=[];
+      for(const effect of this.effects){effect.life=0;effect.mesh.visible=false;}
+      return;
+    }
+    if(!['hit','bounce','wall','net'].includes(event.type))return;
+    const effect=this.effects.find(item=>item.life<=0)??this.effects[0];
+    effect.duration=event.type==='wall'?.4:.24;effect.life=effect.duration;
+    effect.billboard=event.type==='hit'||event.type==='net';
+    const circle=effect.mesh;circle.visible=true;circle.scale.setScalar(1);
+    circle.material.color.setHex(event.type==='wall'||event.type==='net'?RED:BLUE);
+    circle.material.opacity=.8;circle.rotation.set(0,0,0);
+    circle.position.set(event.x,event.type==='bounce'?.04:event.y,event.z);
+    if(event.type==='bounce')circle.rotation.x=-Math.PI/2;
+    else if(event.axis==='x')circle.rotation.y=Math.PI/2;
   }
-  render(game,dt,time) {
-    const mobile=this.width<650;
+  render(game,dt,time,state=game) {
+    this.cameraState=state;this.playerEye=this.eye.update(state,dt,this.reducedMotion);
+    const mobile=innerWidth<650;
     let cx=this.mode==='end'?0:13.5,cy=this.mode==='end'?14:21,cz=this.mode==='end'?30:27;
     if(mobile){cx=3;cy=29;cz=31;}
     if(this.lobby){cx=16+Math.sin(time*.1)*.7;cy=22;cz=28;}
-    const factor=1-Math.exp(-dt*4);
-    this.camera.position.lerp(V(cx,cy,cz),factor);
-    this.camera.lookAt(0,0,this.lobby&&mobile?3.5:0);
+    const fitted=courtCameraPose(this.width/this.height,39,!mobile&&this.mode!=='end');
+    const factor=this.reducedMotion?1:1-Math.exp(-dt*10);
+    this.camera.position.lerp(this.lobby?V(cx,cy,cz):fitted.eye,factor);
+    this.camera.lookAt(this.lobby?V(0,0,mobile?3.5:0):fitted.center);
     if(this.lobby&&!mobile)this.camera.setViewOffset(this.width,this.height,-this.width*.14,0,this.width,this.height);
     else if(this.lobby&&mobile)this.camera.setViewOffset(this.width,this.height,0,this.height*.25,this.width,this.height);
     else this.camera.clearViewOffset();
     // Keep court margins safe on narrow portrait screens.
-    this.camera.fov=mobile?46:39;this.camera.updateProjectionMatrix();
-    animateRacketPlayers(this.players, game, dt, time);
-    const b=game.ball;this.ball.position.set(b.x,b.y,b.z);this.ball.rotation.x+=dt*5;
+    this.camera.fov=this.lobby&&mobile?46:39;this.camera.updateProjectionMatrix();
+    this.views?.prepare();this.camera.updateMatrixWorld();
+    animateRacketPlayers(this.players, state, dt, time, {pose:strokePose,footwork:true});
+    const b=state.ball;this.ball.position.set(b.x,b.y,b.z);this.ball.rotation.x+=dt*5;
+    const worldPerPixel=this.camera.isOrthographicCamera?(this.camera.top-this.camera.bottom)/this.height:2*Math.tan(this.camera.fov*Math.PI/360)*this.camera.position.distanceTo(this.ball.position)/this.height;
+    this.ball.scale.setScalar(clamp(worldPerPixel*3.2/(COURT.ballRadius*1.18),1,2.4));
     this.shadow.position.set(b.x,.035,b.z);this.shadow.scale.setScalar(1+Math.max(0,b.y)*.13);this.shadow.material.opacity=.3/(1+b.y*.3);
-    const p=game.players[game.controlled];this.activeRing.position.set(p.x,.036,p.z);
+    const p=state.players[game.controlled];this.activeRing.position.set(p.x,.036,p.z);
+    this.activeRing.material.opacity=game.contactState?.(game.players[game.controlled]).ready?1:.5;
     this.target.position.set(game.aim.x,.038,game.aim.z);this.target.rotation.z=time*.6;
-    if(game.stage==='rally')this.trail.unshift(V(b.x,b.y,b.z));else this.trail=[];
+    this.practiceRing.visible=!this.lobby&&game.mode==='practice';
+    if(this.practiceRing.visible)this.practiceRing.position.set(game.practiceTarget.x,.042,game.practiceTarget.z);
+    const guide=this.heightGuide.geometry.attributes.position;
+    guide.setXYZ(0,b.x,.04,b.z);guide.setXYZ(1,b.x,b.y,b.z);guide.needsUpdate=true;
+    this.heightGuide.visible=!this.lobby&&b.y>.8;
+    this.trailClock+=dt;
+    if(game.stage==='rally'&&dt>0&&this.trailClock-this.trailSample>=1/120){
+      this.trail.unshift({x:b.x,y:b.y,z:b.z,time:this.trailClock});this.trailSample=this.trailClock;
+    }else if(game.stage!=='rally')this.trail=[];
+    while(this.trail.length&&this.trailClock-this.trail.at(-1).time>.18)this.trail.pop();
     this.trail.length=Math.min(this.trail.length,28);
     const attr=this.trailLine.geometry.attributes.position;
     for(let i=0;i<this.trail.length;i++)attr.setXYZ(i,this.trail[i].x,this.trail[i].y,this.trail[i].z);
     attr.needsUpdate=true;this.trailLine.geometry.setDrawRange(0,this.trail.length);
-    for(let i=this.effects.length-1;i>=0;i--){const e=this.effects[i];e.life-=dt;e.mesh.scale.setScalar(1+(0.5-e.life)*6);e.mesh.material.opacity=e.life*2;if(e.life<=0){this.scene.remove(e.mesh);e.mesh.geometry.dispose();e.mesh.material.dispose();this.effects.splice(i,1);}}
+    for(const effect of this.effects){
+      if(effect.life<=0)continue;
+      effect.life=Math.max(0,effect.life-dt);effect.mesh.visible=effect.life>0;
+      effect.mesh.scale.setScalar(this.reducedMotion?1.5:1+(effect.duration-effect.life)*7);
+      effect.mesh.material.opacity=effect.life/effect.duration*.8;
+      if(effect.billboard)effect.mesh.quaternion.copy(this.camera.quaternion);
+    }
     this.renderer.render(this.scene,this.camera);
     this.projectPoint.set(p.x,2.1,p.z).project(this.camera);
-    return {x:(this.projectPoint.x*.5+.5)*this.width,y:(-.5*this.projectPoint.y+.5)*this.height};
+    return {x:this.left+(this.projectPoint.x*.5+.5)*this.width,y:this.top+(-.5*this.projectPoint.y+.5)*this.height};
   }
 }

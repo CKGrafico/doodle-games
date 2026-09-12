@@ -6,6 +6,9 @@ const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 
 // Poses are expressed in each sport's world, not in screen coordinates.
 export function cameraFrame(kind, game, view = {}) {
+  // Padel is the first quality milestone to supply a render snapshot explicitly.
+  // Other sports keep their existing simulation/camera contract until reviewed.
+  if (kind === 'padel' && view.cameraState) game = view.cameraState;
   const p = game.players?.[game.controlled] ?? { x: 0, z: 0, team: 0 };
   const frame = { focus: [0, 0, 0], width: 14, depth: 25, eye: [p.x, 1.65, p.z], look: [p.x, .8, p.z - 12] };
   if (kind === 'sheep') {
@@ -14,7 +17,8 @@ export function cameraFrame(kind, game, view = {}) {
   } else if (kind === 'padel' || kind === 'pickleball') {
     const direction = p.team === 0 ? -1 : 1;
     frame.width = kind === 'padel' ? 13 : 11; frame.depth = kind === 'padel' ? 24 : 20;
-    frame.look = [p.x, .7, p.z + direction * 12];
+    if (kind === 'padel' && view.playerEye) frame.eye = view.playerEye;
+    frame.look = [frame.eye[0], .7, frame.eye[2] + direction * 12];
   } else if (kind === 'football' || kind === 'waterpolo') {
     const direction = game.d?.(p.team) ?? -1;
     frame.width = kind === 'football' ? 76 : 23; frame.depth = kind === 'football' ? 118 : 34;
@@ -72,7 +76,7 @@ export function installViews(view, kind, clearInput = () => {}, input = null) {
   try { const saved = localStorage.getItem('doodle-camera:' + kind); if (CAMERA_MODES.includes(saved)) mode = saved; } catch { /* Storage is optional. */ }
   const renderScene = view.renderer.render.bind(view.renderer), renderGame = view.render.bind(view), resize = view.resize.bind(view);
   function apply(cameraMode) {
-    if (!currentGame || cameraMode === 'third') { view.camera = baseCamera; return baseCamera; }
+    if (!currentGame || cameraMode === 'third' || kind === 'padel' && view.lobby) { view.camera = baseCamera; return baseCamera; }
     frame = cameraFrame(kind, currentGame, view);
     const rect = view.canvas.getBoundingClientRect(), aspect = Math.max(.1, rect.width / Math.max(1, rect.height));
     if (cameraMode === 'top') {
@@ -90,9 +94,10 @@ export function installViews(view, kind, clearInput = () => {}, input = null) {
   // rasterization, ray aiming, world-relative movement and projected player labels.
   view.renderer.render = (scene, camera) => {
     const chosen = currentGame ? apply(mode) : camera;
+    const firstPerson = chosen === first;
     const ownLabel = document.getElementById('player-label');
-    if (ownLabel) ownLabel.style.visibility = mode === 'first' ? 'hidden' : '';
-    const model = mode === 'first' && currentGame ? playerObject(view, kind, currentGame) : null;
+    if (ownLabel) ownLabel.style.visibility = firstPerson ? 'hidden' : '';
+    const model = firstPerson && currentGame ? playerObject(view, kind, currentGame) : null;
     const wasVisible = model?.visible;
     if (model) model.visible = false;
     try { renderScene(scene, chosen); } finally { if (model) model.visible = wasVisible; }
@@ -124,7 +129,7 @@ export function installViews(view, kind, clearInput = () => {}, input = null) {
     view.canvas.focus({ preventScroll: true });
   }
   select.addEventListener('change', () => setMode(select.value));
-  view.views = { setMode, get mode() { return mode; }, get game() { return currentGame; } };
+  view.views = { setMode, prepare: () => apply(mode), get mode() { return mode; }, get game() { return currentGame; } };
   if (input) mouseLook = installFirstPerson(view, kind, input, () => apply(mode), clearInput);
   return view.views;
 }

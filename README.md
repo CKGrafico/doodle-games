@@ -2,7 +2,7 @@
 
 Twelve original hand-drawn games built with Three.js and no build step:
 
-- `padel/`: doubles padel with glass-wall rebounds, partners, opponents, serves, rallies, and scoring.
+- `padel/`: doubles padel with responsive footwork, interpolated motion, distinct racket strokes, glass-wall rebounds, partners, opponents, legal service/scoring, and a placement-target warm-up.
 - `football/`: 11 versus 11 football with AI teams, passing, shooting, keepers, restarts, offside, and match time.
 - `golf/`: nine-hole stroke play with clubs, wind, slopes, bunkers, water, penalties, and a scorecard.
 - `waterpolo/`: 7 versus 7 water polo with swimming, passing, shooting, steals, goalkeepers, four quarters, and a possession clock.
@@ -30,6 +30,8 @@ Hold left click to charge, release to play, right click to cancel. Keyboard and 
 All twelve games offer **Top view**, **3rd person** and **1st person** in the View selector. The selected view is remembered per game on this device. Surf and ski also track local personal bests and three session challenges; their in-game help explains tricks, combos and race strategy.
 
 First-person mouse controls: golf, petanca, curling and pool use relative horizontal aiming with Shift for precision and aim locked during charge. Padel, football, water polo, pickleball and sheep use mouse look, camera-relative movement, centre aiming and optional mouse lock. Esc releases the mouse. Top and third-person aiming retain their existing controls.
+
+The [quality recovery plan](docs/QUALITY-PLAN.md) is underway. Padel is the first playable candidate: short acceleration/braking, consistent player selection, timed contact poses, clearer ball feedback, touch drag look, fitted mobile court space and quick practice retries. Append `?feel=1` to its URL for a seeded movement/rendering comparison and local frame statistics. See [baseline evidence](docs/feel-baseline.md) for the 123 passing tests and the still-open browser/device playtest gate. The other games await the staged rollout.
 
 ## Inspiration
 

@@ -1,0 +1,74 @@
+/* Padel milestone layout. Keep the playing surface clear of controls. */
+.padel-game #court { position: absolute; }
+.padel-game.playing #arena { top: 132px; bottom: 210px; height: auto; }
+.padel-game .contact-hint { display: none; }
+.padel-game.playing .contact-hint {
+  display: block; position: fixed; top: 112px; left: 50%; transform: translateX(-50%);
+  margin: 0; padding: 5px 12px; max-width: 94vw; width: max-content;
+  background: var(--paper); font-size: 13px; text-align: center; pointer-events: none;
+}
+.padel-game .controls { bottom: max(12px, env(safe-area-inset-bottom)); width: min(720px, 94vw); gap: 7px; }
+.padel-game .desktop-controls { display: none; }
+.padel-game .control-actions { align-items: center; gap: 16px; }
+.padel-game .small-button, .padel-game .camera-views select,
+.padel-game .text-button, .padel-game .first-person-controls button { min-height: 48px; }
+.padel-game .close-dialog, .padel-game .wordmark { min-width: 48px; min-height: 48px; }
+.padel-game .practice-tools { display: flex; align-items: center; justify-content: center; gap: 18px; font-size: 13px; }
+.padel-game .practice-tools kbd { font-size: 11px; }
+.padel-game .mouse-power { padding: 4px 10px; font-size: 12px; }
+.padel-game .first-person-controls { justify-content: center; }
+.padel-game .first-person-controls button { border-bottom: 1px solid var(--ink); }
+.padel-game .look-setting { display: flex; align-items: center; gap: 18px; margin: 20px 0; }
+.padel-game .look-setting input { flex: 1; min-width: 80px; min-height: 48px; accent-color: var(--ink); }
+.padel-game .callout { top: 33%; }
+.padel-game.practicing #arena { bottom: 258px; }
+.padel-game .feel-lab {
+  position: fixed; left: 12px; top: 80px; z-index: 10; width: min(370px, calc(100vw - 24px));
+  max-height: 70dvh; overflow: auto; padding: 12px; background: var(--paper);
+  border: 1px solid var(--ink); font-size: 12px;
+}
+.padel-game .feel-lab summary { cursor: pointer; min-height: 32px; }
+.padel-game .feel-lab label { display: grid; gap: 6px; }
+.padel-game .feel-lab select, .padel-game .feel-lab button { min-height: 48px; }
+.padel-game .feel-lab pre { white-space: pre-wrap; line-height: 1.5; }
+.padel-game .feel-lab button { border: 1px solid var(--ink); width: 100%; }
+
+@media (pointer: coarse), (max-width: 650px) {
+  .padel-game.playing #arena { top: 150px; bottom: calc(240px + env(safe-area-inset-bottom)); }
+  .padel-game.practicing #arena { bottom: calc(294px + env(safe-area-inset-bottom)); }
+  .padel-game.playing .contact-hint { top: 128px; font-size: 12px; }
+  .padel-game .hud { top: 58px; }
+  .padel-game .scoreboard { padding: 5px 10px; }
+  .padel-game .score-team b { font-size: 30px; margin: 2px 0; }
+  .padel-game .controls { bottom: calc(178px + env(safe-area-inset-bottom)); gap: 5px; }
+  .padel-game .control-actions { gap: 8px; }
+  .padel-game .small-button { font-size: 12px; padding: 4px 7px; }
+  .padel-game .touch-controls { align-items: center; }
+  .padel-game .joystick { width: 114px; height: 114px; flex-shrink: 0; }
+  .padel-game .touch-shots { grid-template-columns: 60px 78px; gap: 10px; }
+  .padel-game .shot { width: 60px; height: 60px; font-size: 16px; }
+  .padel-game .shot.hit { grid-column: 2; grid-row: 2; width: 78px; height: 78px; }
+  .padel-game .mouse-power, .padel-game .first-person-controls { display: none; }
+  .padel-game .first-person-reticle:not([hidden]) { display: block; }
+  .padel-game .practice-tools { gap: 12px; }
+  .padel-game .practice-tools kbd { display: none; }
+  .padel-game .masthead { padding: max(6px, env(safe-area-inset-top)) 16px 0; }
+  .padel-game .utilities { gap: 14px; }
+  .padel-game .callout { top: 27%; }
+}
+
+@media (max-height: 550px) and (min-width: 651px) {
+  .padel-game.playing #arena { top: 65px; bottom: 76px; left: 145px; right: 170px; width: auto; }
+  .padel-game .hud { top: 5px; }
+  .padel-game .scoreboard { min-width: 300px; padding: 3px 8px; gap: 6px; }
+  .padel-game .score-team { min-width: 80px; }
+  .padel-game .team-label { font-size: 9px; }
+  .padel-game .score-team b { font-size: 24px; margin: 0; }
+  .padel-game .games, .padel-game .versus { display: none; }
+  .padel-game .controls { bottom: max(5px, env(safe-area-inset-bottom)); gap: 2px; width: calc(100vw - 310px); }
+  .padel-game.practicing #arena { bottom: 116px; }
+  .padel-game .practice-tools { gap: 8px; font-size: 11px; }
+  .padel-game .mouse-power, .padel-game .first-person-controls { display: none; }
+  .padel-game.playing .contact-hint { top: 50px; font-size: 11px; }
+  .padel-game .callout { top: 31%; }
+}

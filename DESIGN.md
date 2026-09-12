@@ -44,6 +44,8 @@ Padel/football/water polo share the team-game composition. Golf's shot panel and
 
 ## Interaction and accessibility
 
+The first padel quality candidate reserves a canvas rectangle between the scoreboard and controls. Its court fit, ray aiming and projected labels use that rectangle, including mobile offsets. The ball has a bounded minimum visual size, a floor shadow and a subtle height guide; this visual scaling does not alter collision radius. The 180 ms partner-eye transition keeps a stable look direction and respects reduced motion. Court strokes/posts batch before animated models are added, preserving the same ink materials. Footwork follows distance travelled; contact rings use a bounded pool and trails expire by elapsed time. These are candidate improvements awaiting the hands-on gate in `docs/feel-baseline.md`, not evidence of validated mobile comfort.
+
 Match labels to MECHANICS.md. Space and left click must represent the same primary action. The primary touch button uses the strongest ink treatment. Alternative actions use lighter treatment and clear text, not unexplained icons.
 
 Use native buttons, inputs, selects and dialogs, visible keyboard focus, descriptive labels, and readable contrast. Keep action targets at least 44 CSS pixels on touch layouts. Preserve native keyboard behavior in UI controls. Clear input when menus or background tabs interrupt play. Optional sound needs a visible, accurate pressed state.
